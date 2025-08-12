@@ -1,0 +1,13 @@
+# зависимости и сборки
+node_modules
+dist
+
+# IDE/среда
+.vscode
+.idea
+
+# ОС/прочее
+.DS_Store
+
+# секреты
+.env

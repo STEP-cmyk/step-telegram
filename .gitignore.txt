@@ -1,0 +1,13 @@
+# зависимости и артефакты
+node_modules
+dist
+
+# среда/IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+
+# секреты
+.env
