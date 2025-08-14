@@ -12,6 +12,8 @@ import { uid } from '../lib/utils'
 import { Plus, Target, Calendar, Tag, Star } from 'lucide-react'
 
 export default function Goals() {
+  console.log('Goals component is rendering')
+  
   const { data, setData, ready } = useApp()
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -30,6 +32,8 @@ export default function Goals() {
     attachments: [],
     category: 'Personal'
   })
+
+  console.log('Goals component state - ready:', ready, 'data:', data)
 
   // Wait for data to be ready
   if (!ready || !data) {

@@ -104,12 +104,16 @@ export default function SwipeableItem({
       ref={itemRef}
       className={`swipeable-item relative overflow-hidden rounded-xl bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-700 ${className}`}
     >
-      {/* Swipe Actions */}
-      <div className="absolute inset-y-0 left-0 flex items-center bg-green-500 text-white px-4 rounded-l-xl">
-        <CheckSquare size={20} />
-      </div>
-      <div className="absolute inset-y-0 right-0 flex items-center bg-red-500 text-white px-4 rounded-r-xl">
-        <Trash2 size={20} />
+      {/* Swipe Actions - Hidden by default */}
+      <div className={`swipe-actions ${showActions ? 'visible' : ''}`}>
+        <div className="swipe-action-left">
+          <CheckSquare size={20} />
+          <span className="ml-2 text-sm font-medium">Complete</span>
+        </div>
+        <div className="swipe-action-right">
+          <span className="mr-2 text-sm font-medium">Delete</span>
+          <Trash2 size={20} />
+        </div>
       </div>
       
       {/* Main Content */}

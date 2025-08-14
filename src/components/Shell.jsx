@@ -109,51 +109,55 @@ export default function Shell({children}){
   ]
   const ThemeIcon = data?.settings?.theme === 'dark' ? Moon : Sun
 
-  return (<div className="min-h-dvh bg-gradient-to-br from-blue-50 via-white to-red-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-orange-900/20 text-zinc-900 dark:text-zinc-50">
-    <header className="header">
-      <div className="header-inner container">
-        <div className="flex items-center gap-2 font-bold tracking-tight">
-          <img src={logo} alt="" style={{width:24,height:24,opacity:.85}} />
-          STEP <span className="opacity-60">v0.3.0</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {data?.settings?.tipsOnHome && <Badge><Zap size={14} className="mr-1"/> Motivation ON</Badge>}
-          <Button variant="primary" onClick={cycleTheme}><ThemeIcon size={16} className="mr-1"/> Theme: {data?.settings?.theme}</Button>
-          <Link to="/settings" className="btn btn-primary"><Settings size={16} className="mr-1"/> Settings</Link>
-        </div>
-      </div>
-    </header>
+  console.log('Current location:', loc.pathname)
+  console.log('Navigation items:', nav)
 
-    {/* Key by route for fade/slide transition */}
-    <main className="max-w-3xl mx-auto px-3 md:px-4 pt-2 md:pt-4 pb-28 md:pb-24 safe-bottom">
-      {children}
-    </main>
-
-    <nav className="fixed bottom-0 inset-x-0 z-[9999] backdrop-blur-md bg-white/85 dark:bg-zinc-900/85 border-t border-gray-200 dark:border-gray-700 shadow-lg">
-      <div className="max-w-3xl mx-auto px-2 py-2 md:py-2"
-           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="flex justify-between items-center w-full gap-1 md:gap-2">
-          {nav.map((item, i) => {
-            const Icon = item.icon
-            const isActive = loc.pathname === item.to
-            return (
-              <Link
-                key={i}
-                to={item.to}
-                className={`tab-item flex-1 h-16 md:h-14 ${
-                  isActive 
-                    ? 'tab-active' 
-                    : ''
-                }`}
-                style={{ textDecoration: 'none' }}
-              >
-                <Icon size={20} className="tab-ico" />
-                <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
-              </Link>
-            )
-          })}
+  return (
+    <div className="app-container min-h-dvh bg-gradient-to-br from-blue-50 via-white to-red-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-orange-900/20 text-zinc-900 dark:text-zinc-50">
+      <header className="header">
+        <div className="header-inner container">
+          <div className="flex items-center gap-2 font-bold tracking-tight">
+            <img src={logo} alt="" style={{width:24,height:24,opacity:.85}} />
+            STEP <span className="opacity-60">v0.3.0</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {data?.settings?.tipsOnHome && <Badge><Zap size={14} className="mr-1"/> Motivation ON</Badge>}
+            <Button variant="primary" onClick={cycleTheme}><ThemeIcon size={16} className="mr-1"/> Theme: {data?.settings?.theme}</Button>
+            <Link to="/settings" className="btn btn-primary"><Settings size={16} className="mr-1"/> Settings</Link>
+          </div>
         </div>
-      </div>
-    </nav>
-  </div>)
+      </header>
+
+      {/* Key by route for fade/slide transition */}
+      <main className="main max-w-3xl mx-auto px-3 md:px-4 pt-2 md:pt-4">
+        {children}
+      </main>
+
+      <nav className="tabbar">
+        <div className="max-w-3xl mx-auto px-2 py-2 md:py-2">
+          <div className="flex justify-between items-center w-full gap-1 md:gap-2">
+            {nav.map((item, i) => {
+              const Icon = item.icon
+              const isActive = loc.pathname === item.to
+              return (
+                <Link
+                  key={i}
+                  to={item.to}
+                  className={`tab-item flex-1 h-16 md:h-14 ${
+                    isActive 
+                      ? 'tab-active' 
+                      : ''
+                  }`}
+                  style={{ textDecoration: 'none' }}
+                >
+                  <Icon size={20} className="tab-ico" />
+                  <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      </nav>
+    </div>
+  )
 }

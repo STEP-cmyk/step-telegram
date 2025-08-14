@@ -35,6 +35,8 @@ const DURATION_OPTIONS = [
 ]
 
 export default function Habits() {
+  console.log('Habits component is rendering')
+  
   const { data, setData, ready } = useApp()
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -53,6 +55,8 @@ export default function Habits() {
     reminders: [],
     description: ''
   })
+
+  console.log('Habits component state - ready:', ready, 'data:', data)
 
   // Wait for data to be ready
   if (!ready || !data) {
