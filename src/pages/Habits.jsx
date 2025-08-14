@@ -37,7 +37,7 @@ const DURATION_OPTIONS = [
 export default function Habits() {
   console.log('Habits component is rendering')
   
-  const { data, setData, ready } = useApp()
+  const { data, setData, ready, error } = useApp()
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedHabit, setSelectedHabit] = useState(null)
@@ -56,7 +56,19 @@ export default function Habits() {
     description: ''
   })
 
-  console.log('Habits component state - ready:', ready, 'data:', data)
+  console.log('Habits component state - ready:', ready, 'error:', error, 'data:', data)
+
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-8 h-8 mx-auto mb-4 border-2 border-red-600 border-t-transparent rounded-full"></div>
+          <p className="text-red-600 dark:text-red-400">Error loading data: {error.message}</p>
+        </div>
+      </div>
+    )
+  }
 
   // Wait for data to be ready
   if (!ready || !data) {
@@ -259,6 +271,13 @@ export default function Habits() {
 
   return (
     <div className="space-y-6">
+      {/* Test message to verify rendering */}
+      <div className="text-center p-4 bg-green-100 dark:bg-green-900/30 rounded-xl">
+        <h1 className="text-lg font-semibold text-green-800 dark:text-green-200">Habits Page is Working!</h1>
+        <p className="text-sm text-green-600 dark:text-green-300">Data loaded: {ready ? 'Yes' : 'No'}</p>
+        <p className="text-sm text-green-600 dark:text-green-300">Habits count: {habits.length}</p>
+      </div>
+
       {/* Add Habit Button */}
       <div className="text-center">
         <Button 

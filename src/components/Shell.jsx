@@ -116,14 +116,30 @@ export default function Shell({children}){
     <div className="app-container min-h-dvh bg-gradient-to-br from-blue-50 via-white to-red-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-orange-900/20 text-zinc-900 dark:text-zinc-50">
       <header className="header">
         <div className="header-inner container">
-          <div className="flex items-center gap-2 font-bold tracking-tight">
-            <img src={logo} alt="" style={{width:24,height:24,opacity:.85}} />
-            STEP <span className="opacity-60">v0.3.0</span>
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="" className="w-6 h-6 opacity-85" />
+            <div className="flex items-center gap-2">
+              <span className="font-bold tracking-tight text-lg">STEP</span>
+              <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full font-medium">
+                v0.3.0
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            {data?.settings?.tipsOnHome && <Badge><Zap size={14} className="mr-1"/> Motivation ON</Badge>}
-            <Button variant="primary" onClick={cycleTheme}><ThemeIcon size={16} className="mr-1"/> Theme: {data?.settings?.theme}</Button>
-            <Link to="/settings" className="btn btn-primary"><Settings size={16} className="mr-1"/> Settings</Link>
+            {data?.settings?.tipsOnHome && (
+              <Badge>
+                <Zap size={14} className="mr-1"/>
+                Motivation ON
+              </Badge>
+            )}
+            <Button variant="primary" onClick={cycleTheme}>
+              <ThemeIcon size={16} className="mr-1"/>
+              Theme: {data?.settings?.theme}
+            </Button>
+            <Link to="/settings" className="btn btn-primary">
+              <Settings size={16} className="mr-1"/>
+              Settings
+            </Link>
           </div>
         </div>
       </header>

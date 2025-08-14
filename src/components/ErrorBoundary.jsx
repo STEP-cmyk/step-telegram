@@ -8,6 +8,7 @@ export default class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
+    console.log('ErrorBoundary caught error:', error)
     return { hasError: true }
   }
 
@@ -39,7 +40,10 @@ export default class ErrorBoundary extends React.Component {
             </p>
             
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                this.setState({ hasError: false, error: null, errorInfo: null })
+                window.location.reload()
+              }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
             >
               <RefreshCw size={16} />

@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Shell from './components/Shell'
 import ErrorBoundary from './components/ErrorBoundary'
 import { AppProvider } from './store/app.jsx'
@@ -23,22 +23,33 @@ function LoadingFallback() {
   )
 }
 
+function AppRoutes() {
+  const location = useLocation()
+  console.log('Current route:', location.pathname)
+  
+  return (
+    <Routes>
+      <Route path="/" element={<Summary />} />
+      <Route path="/goals" element={<Goals />} />
+      <Route path="/habits" element={<Habits />} />
+      <Route path="/wishes" element={<Wishes />} />
+      <Route path="/notes" element={<Notes />} />
+      <Route path="/competitions" element={<Competitions />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+
 export default function App(){
+  console.log('App component rendering')
+  
   return (
     <ErrorBoundary>
       <AppProvider>
         <Shell>
           <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Summary />} />
-              <Route path="/goals" element={<Goals />} />
-              <Route path="/habits" element={<Habits />} />
-              <Route path="/wishes" element={<Wishes />} />
-              <Route path="/notes" element={<Notes />} />
-              <Route path="/competitions" element={<Competitions />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+            <AppRoutes />
           </Suspense>
         </Shell>
       </AppProvider>
