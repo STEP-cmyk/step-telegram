@@ -12,81 +12,147 @@ import { bindParallax } from '../lib/parallax'
 import { mountConfetti } from '../lib/confetti'
 import { initTG } from '../lib/tg'
 
-import { Sun, Moon, Settings, Home, Target, CheckSquare, Heart, NotebookText, Trophy } from 'lucide-react'
+import { Sun, Moon, Settings, Home, Target, CheckSquare, Heart, NotebookText, Trophy, Zap } from 'lucide-react'
 import logo from '../assets/logo.svg'
 
 
 export default function Shell({children}){
-  const { data, setData } = useApp()
+  const { data, setData, ready, error } = useApp()
   const loc = useLocation()
 
-  React.useEffect(()=>{
-    applyTheme(data.settings.theme, { withFade: true })
-  }, [data.settings.theme])
+  // Show loading state while data is being initialized
+  if (!ready) {
+    return (
+      <div className="min-h-dvh bg-zinc-50 dark:bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 mx-auto mb-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if there was an error loading data
+  if (error) {
+    return (
+      <div className="min-h-dvh bg-zinc-50 dark:bg-black flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <h1 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-zinc-100">
+            Failed to load data
+          </h1>
+          <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+            There was an error loading your data. Please refresh the page.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Ensure theme is applied even if it wasn't set properly
+  React.useEffect(() => {
+    if (ready && data?.settings?.theme) {
+      console.log('Applying theme:', data.settings.theme)
+      applyTheme(data.settings.theme, { withFade: true })
+    } else if (ready) {
+      // Fallback: apply default theme
+      console.log('No theme set, applying default dark theme')
+      applyTheme('dark', { withFade: false })
+    }
+  }, [data?.settings?.theme, ready])
 
   React.useEffect(()=>{
     const un = bindParallax()
     return un
   }, [])
+  
   React.useEffect(() => {
-  const off = bindParallax()
-  const conf = mountConfetti()
+    if (!ready) return
+    
+    const off = bindParallax()
+    const conf = mountConfetti()
 
-  // Сообщаем адаптеру как менять тему/ник через твой стейт
-  initTG({
-    setTheme: (theme, opts) => applyTheme(theme, opts),
-    getNickname: () => data.settings.nickname,
-    setNickname: (nickname) => setData(d => ({ ...d, settings:{ ...d.settings, nickname } })),
-  })
+    // Сообщаем адаптеру как менять тему/ник через твой стейт
+    initTG({
+      setTheme: (theme, opts) => {
+        console.log('TG setTheme called with:', theme)
+        applyTheme(theme, opts)
+      },
+      getNickname: () => data?.settings?.nickname || 'User',
+      setNickname: (nickname) => setData(d => ({ ...d, settings:{ ...d.settings, nickname } })),
+    })
 
-  return () => { off?.(); conf?.destroy?.() }
-}, [])
+    return () => { off?.(); conf?.destroy?.() }
+  }, [ready])
 
   const cycleTheme = () => {
-    setData(d => ({ ...d, settings: { ...d.settings, theme: d.settings.theme === 'dark' ? 'light' : 'dark' } }))
+    const newTheme = data?.settings?.theme === 'dark' ? 'light' : 'dark'
+    console.log('Cycling theme from', data?.settings?.theme, 'to', newTheme)
+    setData(d => ({ ...d, settings: { ...d.settings, theme: newTheme } }))
   }
 
   const nav = [
-    { to:'/',              label:'Сводка',       icon: Home },
-    { to:'/goals',         label:'Цели',         icon: Target },
-    { to:'/habits',        label:'Привычки',     icon: CheckSquare },
-    { to:'/wishes',        label:'Хотелки',      icon: Heart },
-    { to:'/notes',         label:'Записи',       icon: NotebookText },
-    { to:'/competitions',  label:'Соревнования', icon: Trophy },
+    { to:'/',              label:'Summary',      icon: Home },
+    { to:'/goals',         label:'Goals',        icon: Target },
+    { to:'/habits',        label:'Habits',       icon: CheckSquare },
+    { to:'/wishes',        label:'Wishes',       icon: Heart },
+    { to:'/notes',         label:'Notes',        icon: NotebookText },
+    { to:'/competitions',  label:'Competitions', icon: Trophy },
   ]
-  const ThemeIcon = data.settings.theme === 'dark' ? Moon : Sun
+  const ThemeIcon = data?.settings?.theme === 'dark' ? Moon : Sun
 
-  return (<div className="app-shell">
+  return (<div className="min-h-dvh bg-gradient-to-br from-blue-50 via-white to-red-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-orange-900/20 text-zinc-900 dark:text-zinc-50">
     <header className="header">
       <div className="header-inner container">
         <div className="flex items-center gap-2 font-bold tracking-tight">
           <img src={logo} alt="" style={{width:24,height:24,opacity:.85}} />
-          STEP <span className="opacity-60">v0.2.0</span>
+          STEP <span className="opacity-60">v0.3.0</span>
         </div>
         <div className="flex items-center gap-2">
-          {data.settings.tipsOnHome && <Badge>Motivation ON</Badge>}
-          <Button variant="primary" onClick={cycleTheme}><ThemeIcon size={16} className="mr-1"/> Theme: {data.settings.theme}</Button>
+          {data?.settings?.tipsOnHome && <Badge><Zap size={14} className="mr-1"/> Motivation ON</Badge>}
+          <Button variant="primary" onClick={cycleTheme}><ThemeIcon size={16} className="mr-1"/> Theme: {data?.settings?.theme}</Button>
           <Link to="/settings" className="btn btn-primary"><Settings size={16} className="mr-1"/> Settings</Link>
         </div>
       </div>
     </header>
 
     {/* Key by route for fade/slide transition */}
-    <main className="main container">
-      <div key={loc.pathname} className="view">{children}</div>
+    <main className="max-w-3xl mx-auto px-3 md:px-4 pt-2 md:pt-4 pb-28 md:pb-24 safe-bottom">
+      {children}
     </main>
 
-    <nav className="tabbar">
-      <div className="tabbar-inner container">
-        {nav.map(n => {
-          const Icon = n.icon
-          return (
-            <Link key={n.to} to={n.to} className={'tab-item ' + (loc.pathname===n.to?'tab-active':'')}>
-              <Icon size={16} className="tab-ico" />
-              <span>{n.label}</span>
-            </Link>
-          )
-        })}
+    <nav className="fixed bottom-0 inset-x-0 z-[9999] backdrop-blur-md bg-white/85 dark:bg-zinc-900/85 border-t border-gray-200 dark:border-gray-700 shadow-lg">
+      <div className="max-w-3xl mx-auto px-2 py-2 md:py-2"
+           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="flex justify-between items-center w-full gap-1 md:gap-2">
+          {nav.map((item, i) => {
+            const Icon = item.icon
+            const isActive = loc.pathname === item.to
+            return (
+              <Link
+                key={i}
+                to={item.to}
+                className={`tab-item flex-1 h-16 md:h-14 ${
+                  isActive 
+                    ? 'tab-active' 
+                    : ''
+                }`}
+                style={{ textDecoration: 'none' }}
+              >
+                <Icon size={20} className="tab-ico" />
+                <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
       </div>
     </nav>
   </div>)

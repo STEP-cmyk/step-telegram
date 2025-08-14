@@ -26,37 +26,37 @@ export default function Summary(){
   }
 
   return (<div>
-    <Section title="Сегодня" right={<Badge>{new Date().toLocaleDateString()}</Badge>} tone="var(--clr-habit)">
-      {habits.length===0? (
-        <div className="text-sm opacity-70">Нет привычек на сегодня. Добавьте первую в разделе «Привычки».</div>
+    <Section title="Сегодня" right={<Badge>{new Date().toLocaleDateString()}</Badge>} tone="text-green-600 dark:text-green-400">
+      {data.habits.length === 0 ? (
+        <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+          <p>No habits yet. Create your first habit to get started!</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {habits.map(h => (
-            <div key={h.id} className="flex items-center justify-between rounded-2xl" style={{border:'1px solid var(--border)', padding:8}}>
-              <div>
-                <div className="font-medium">{h.title}</div>
-                <div className="text-xs opacity-60">{h.type==='binary' ? 'галочка' : `прогресс: ${Number(h.history?.[t]||0)} / ${h.quantTarget||0}`}</div>
-              </div>
-              <Button variant="primary" onClick={()=>markHabit(h.id, h.type==='binary'? true : (Number(h.history?.[t]||0)+1))}>
-                {h.type==='binary'? (h.history?.[t]===true? 'Снять' : 'Сделано') : '+1'}
-              </Button>
+        <div className="space-y-2">
+          {data.habits.slice(0, 3).map(h => (
+            <div key={h.id} className="flex items-center justify-between rounded-2xl border border-gray-200 dark:border-gray-700 p-2">
+              <span className="text-sm">{h.title}</span>
+              <Button size="sm" variant="primary">Mark Done</Button>
             </div>
           ))}
         </div>
       )}
     </Section>
 
-    <Section title="Сводка" tone="var(--clr-note)">
-      <div className="grid grid-cols-3 gap-2 text-sm">
-        <div className="rounded-2xl p-3" style={{border:'1px solid var(--border)'}}>Цели: <b>{data.goals.length}</b></div>
-        <div className="rounded-2xl p-3" style={{border:'1px solid var(--border)'}}>Привычки: <b>{data.habits.length}</b></div>
-        <div className="rounded-2xl p-3" style={{border:'1px solid var(--border)'}}>Хотелки: <b>{data.wishes.length}</b></div>
+    <Section title="Сводка" tone="text-cyan-600 dark:text-cyan-400">
+      <div className="space-y-2">
+        <div className="rounded-2xl p-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">Цели: <b>{data.goals.length}</b></div>
+        <div className="rounded-2xl p-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">Привычки: <b>{data.habits.length}</b></div>
+        <div className="rounded-2xl p-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">Хотелки: <b>{data.wishes.length}</b></div>
       </div>
     </Section>
 
     {data.settings.tipsOnHome && (
-      <Section title="Мотивация дня" right={<Badge>on</Badge>} tone="var(--clr-compet)">
-        <div className="text-sm">{data.tips[Math.floor(Math.random()*data.tips.length)]?.text}</div>
+      <Section title="Мотивация дня" right={<Badge>on</Badge>} tone="text-orange-600 dark:text-orange-400">
+        <div className="text-center py-4">
+          <p className="text-lg font-medium mb-2">"{data.tips[0].text}"</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">— Daily Motivation</p>
+        </div>
       </Section>
     )}
 

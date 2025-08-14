@@ -1,64 +1,738 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Section from '../components/Section'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
+import Modal from '../components/ui/Modal'
+import IconPicker from '../components/ui/IconPicker'
+import TagInput from '../components/ui/TagInput'
+import SwipeableItem from '../components/ui/SwipeableItem'
 import { useApp } from '../store/app.jsx'
 import { uid, todayISO } from '../lib/utils'
+import { Plus, CheckSquare, Calendar, Bell, Target } from 'lucide-react'
 
-export default function Habits(){
-  const { data, setData } = useApp()
-  const [form, setForm] = React.useState({ title:'Пить воду', type:'binary', quantTarget:8 })
-  const t = todayISO()
+const HABIT_CATEGORIES = [
+  { id: 'health', name: 'Health', icon: '💊', examples: ['Drink water', 'Take vitamins', 'Exercise'] },
+  { id: 'finance', name: 'Finance', icon: '💰', examples: ['Save money', 'Track expenses', 'Invest'] },
+  { id: 'fitness', name: 'Fitness', icon: '💪', examples: ['Workout', 'Run', 'Stretch'] },
+  { id: 'hobby', name: 'Hobby', icon: '🎨', examples: ['Read books', 'Play music', 'Draw'] },
+  { id: 'learning', name: 'Learning', icon: '📚', examples: ['Study language', 'Learn coding', 'Read'] },
+  { id: 'business', name: 'Business', icon: '💼', examples: ['Network', 'Learn skills', 'Plan'] }
+]
 
-  const addHabit = () => setData(d => ({ ...d, habits:[...d.habits, { id:uid(), history:{}, streak:0, best:0, ...form }] }))
-  const markHabit = (id,val) => setData(d => ({ ...d, habits:d.habits.map(h=>{
-    if(h.id!==id) return h
-    const history={...(h.history||{})}; history[t]=val ?? (h.type==='binary' ? !(history[t]===true) : (history[t]||0)+1)
-    const streak=calcStreak(history); return {...h,history,streak,best:Math.max(h.best||0,streak)}
-  }) }))
+const ACTIVE_DAYS_OPTIONS = [
+  { id: 'daily', name: 'Every day', description: '7 days a week' },
+  { id: 'weekdays', name: 'Weekdays only', description: 'Monday to Friday' },
+  { id: 'weekends', name: 'Weekends only', description: 'Saturday and Sunday' },
+  { id: 'custom', name: 'Custom days', description: 'Choose specific days' }
+]
 
-  return (<div>
-    <Section title="Добавить привычку" tone="var(--clr-habit)">
-      <div className="grid md:grid-cols-4 gap-2">
-        <Input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="Название" />
-        <select value={form.type} onChange={e=>setForm({...form,type:e.target.value})} className="select">
-          <option value="binary">галочка</option>
-          <option value="quant">количественная</option>
-        </select>
-        <Input type="number" value={form.quantTarget} onChange={e=>setForm({...form,quantTarget:Number(e.target.value)})} placeholder="цель/день" />
-        <Button variant="primary" onClick={()=>{ addHabit(); setForm({ title:'', type:'binary', quantTarget:8 }) }}>Сохранить</Button>
-      </div>
-    </Section>
+const DURATION_OPTIONS = [
+  { id: 'week', name: '1 Week', description: '7 days' },
+  { id: 'month', name: '1 Month', description: '30 days' },
+  { id: 'quarter', name: '3 Months', description: '90 days' },
+  { id: 'year', name: '1 Year', description: '365 days' },
+  { id: 'indefinite', name: 'Indefinite', description: 'No end date' }
+]
 
-    <Section title="Мои привычки" tone="var(--clr-habit)">
-      {data.habits.length===0? <div className="text-sm opacity-60">Ещё нет привычек.</div> :
-        <div className="grid gap-2">
-          {data.habits.map(h => (
-            <div key={h.id} className="rounded-2xl p-3" style={{border:'1px solid var(--border)'}}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">{h.title}</div>
-                  <div className="text-xs opacity-60">серия: {h.streak} · лучшая: {h.best}</div>
-                </div>
-                <Button variant="primary" onClick={()=> markHabit(h.id, h.type==='binary'? true : (Number(h.history?.[t]||0)+1))}>
-                  {h.type==='binary'? (h.history?.[t]===true? 'Снять' : 'Сделано') : '+1'}
-                </Button>
-              </div>
-            </div>
-          ))}
+export default function Habits() {
+  const { data, setData, ready } = useApp()
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [selectedHabit, setSelectedHabit] = useState(null)
+  const [showIconPicker, setShowIconPicker] = useState(false)
+  const [form, setForm] = useState({
+    title: '',
+    type: 'binary',
+    quantTarget: 8,
+    icon: 'CheckSquare',
+    tags: [],
+    category: 'health',
+    activeDays: 'daily',
+    customDays: [],
+    duration: 'indefinite',
+    reminders: [],
+    description: ''
+  })
+
+  // Wait for data to be ready
+  if (!ready || !data) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-8 h-8 mx-auto mb-4 border-2 border-blue-600 border-t-transparent rounded-full loading-spinner"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
-      }
-    </Section>
-  </div>)
+      </div>
+    )
+  }
+
+  // Debug logging
+  console.log('Habits component rendering with data:', data)
+
+  // Safe data access with fallbacks
+  const habits = data?.habits || []
+  const completedItems = data?.completedItems || []
+
+  console.log('Habits array:', habits)
+  console.log('Completed items:', completedItems)
+
+  // Group habits by category
+  const groupedHabits = habits.reduce((acc, habit) => {
+    const category = habit.category || 'Uncategorized'
+    if (!acc[category]) {
+      acc[category] = []
+    }
+    acc[category].push(habit)
+    return acc
+  }, {})
+
+  const addHabit = () => {
+    const newHabit = {
+      id: uid(),
+      ...form,
+      createdAt: new Date().toISOString(),
+      completed: false,
+      deleted: false,
+      streak: 0,
+      lastCompleted: null,
+      history: []
+    }
+    setData(d => ({ 
+      ...d, 
+      habits: [...(d.habits || []), newHabit] 
+    }))
+    setForm({
+      title: '',
+      type: 'binary',
+      quantTarget: 8,
+      icon: 'CheckSquare',
+      tags: [],
+      category: 'health',
+      activeDays: 'daily',
+      customDays: [],
+      duration: 'indefinite',
+      reminders: [],
+      description: ''
+    })
+    setShowAddModal(false)
+  }
+
+  const updateHabit = (id, patch) => {
+    setData(d => ({ 
+      ...d, 
+      habits: (d.habits || []).map(h => h.id === id ? { ...h, ...patch } : h) 
+    }))
+  }
+
+  const markHabit = (id, val) => {
+    const t = todayISO()
+    setData(d => ({ 
+      ...d, 
+      habits: (d.habits || []).map(h => {
+        if (h.id !== id) return h
+        const history = { ...(h.history || {}) }
+        history[t] = val ?? (h.type === 'binary' ? !(history[t] === true) : (history[t] || 0) + 1)
+        const streak = calcStreak(history)
+        return { ...h, history, streak, best: Math.max(h.best || 0, streak) }
+      }) 
+    }))
+  }
+
+  const completeHabit = (id) => {
+    const habit = habits.find(h => h.id === id)
+    if (habit) {
+      setData(d => ({
+        ...d,
+        habits: habits.filter(h => h.id !== id),
+        completedItems: [...(d.completedItems || []), { ...habit, completed: true, completedAt: new Date().toISOString() }]
+      }))
+    }
+  }
+
+  const deleteHabit = (id) => {
+    const habit = habits.find(h => h.id === id)
+    if (habit) {
+      setData(d => ({
+        ...d,
+        habits: habits.filter(h => h.id !== id),
+        completedItems: [...(d.completedItems || []), { ...habit, deleted: true, deletedAt: new Date().toISOString() }]
+      }))
+    }
+  }
+
+  const restoreItem = (item) => {
+    setData(d => ({
+      ...d,
+      completedItems: (d.completedItems || []).filter(i => i.id !== item.id),
+      habits: [...(d.habits || []), { ...item, completed: false, deleted: false, completedAt: undefined, deletedAt: undefined }]
+    }))
+  }
+
+  const openDetailModal = (habit) => {
+    setSelectedHabit(habit)
+    setShowDetailModal(true)
+  }
+
+  const addReminder = () => {
+    setForm(prev => ({
+      ...prev,
+      reminders: [...prev.reminders, { time: '08:00', message: '' }]
+    }))
+  }
+
+  const updateReminder = (index, field, value) => {
+    setForm(prev => ({
+      ...prev,
+      reminders: prev.reminders.map((r, i) => 
+        i === index ? { ...r, [field]: value } : r
+      )
+    }))
+  }
+
+  const removeReminder = (index) => {
+    setForm(prev => ({
+      ...prev,
+      reminders: prev.reminders.filter((_, i) => i !== index)
+    }))
+  }
+
+  const getCategoryIcon = (categoryId) => {
+    const category = HABIT_CATEGORIES.find(c => c.id === categoryId)
+    return category?.icon || '📌'
+  }
+
+  const getCategoryName = (categoryId) => {
+    const category = HABIT_CATEGORIES.find(c => c.id === categoryId)
+    return category?.name || 'Other'
+  }
+
+  const renderWeeklyProgress = (habit) => {
+    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const today = new Date()
+    const weekStart = new Date(today)
+    weekStart.setDate(today.getDate() - today.getDay())
+
+    return (
+      <div className="flex gap-1">
+        {weekDays.map((day, index) => {
+          const date = new Date(weekStart)
+          date.setDate(weekStart.getDate() + index)
+          const dateStr = date.toISOString().slice(0, 10)
+          const isToday = dateStr === todayISO()
+          const isCompleted = habit.history?.[dateStr]
+          const isActive = habit.activeDays === 'daily' || 
+                          (habit.activeDays === 'weekdays' && index > 0 && index < 6) ||
+                          (habit.activeDays === 'weekends' && (index === 0 || index === 6))
+
+          if (!isActive) {
+            return (
+              <div key={day} className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <span className="text-xs text-gray-400">-</span>
+              </div>
+            )
+          }
+
+          return (
+            <button
+              key={day}
+              onClick={() => markHabit(habit.id, habit.type === 'binary' ? !isCompleted : (isCompleted || 0) + 1)}
+              className={`w-6 h-6 rounded border text-xs font-medium transition-colors ${
+                isCompleted
+                  ? 'bg-green-500 border-green-500 text-white'
+                  : isToday
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+              }`}
+              title={`${day}: ${isCompleted ? 'Completed' : 'Click to mark'}`}
+            >
+              {isCompleted ? '✓' : day[0]}
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Add Habit Button */}
+      <div className="text-center">
+        <Button 
+          variant="primary" 
+          onClick={() => setShowAddModal(true)}
+          className="px-8 py-4 text-lg float"
+        >
+          <Plus size={20} className="mr-2" />
+          Add Habit
+        </Button>
+      </div>
+
+      {/* Active Habits */}
+      <Section title="My Habits" tone="text-green-600 dark:text-green-400">
+        {habits.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <CheckSquare size={48} className="mx-auto mb-4 opacity-50" />
+            <p>No habits yet. Create your first habit to get started!</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {Object.entries(groupedHabits).map(([category, categoryHabits]) => (
+              <div key={category} className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
+                  {getCategoryName(category)} ({categoryHabits.length})
+                </h3>
+                <div className="space-y-3">
+                  {categoryHabits.map((habit, index) => (
+                    <SwipeableItem
+                      key={habit.id}
+                      onSwipeRight={() => completeHabit(habit.id)}
+                      onSwipeLeft={() => openDetailModal(habit)}
+                      onEdit={() => openDetailModal(habit)}
+                      onDelete={() => deleteHabit(habit.id)}
+                      className={`p-4 stagger-item`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className="space-y-3">
+                        {/* Header */}
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                              <CheckSquare size={20} className="text-green-600 dark:text-green-400" />
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-medium truncate">{habit.title}</h3>
+                              <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                                {getCategoryIcon(habit.category)} {getCategoryName(habit.category)}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                              <span className="flex items-center gap-1">
+                                <Target size={14} />
+                                {habit.streak} day streak
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Target size={14} />
+                                Best: {habit.best}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <Button 
+                            variant="primary" 
+                            size="sm"
+                            onClick={() => markHabit(habit.id, habit.type === 'binary' ? true : (Number(habit.history?.[todayISO()] || 0) + 1))}
+                          >
+                            {habit.type === 'binary' 
+                              ? (habit.history?.[todayISO()] === true ? 'Done' : 'Mark Done') 
+                              : '+1'
+                            }
+                          </Button>
+                        </div>
+
+                        {/* Weekly Progress */}
+                        <div>
+                          <div className="text-xs text-gray-500 mb-2">This week's progress:</div>
+                          {renderWeeklyProgress(habit)}
+                        </div>
+
+                        {/* Tags */}
+                        {habit.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {habit.tags.slice(0, 3).map(tag => (
+                              <span key={tag} className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
+                                {tag}
+                              </span>
+                            ))}
+                            {habit.tags.length > 3 && (
+                              <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full">
+                                +{habit.tags.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </SwipeableItem>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Completed/Deleted Items */}
+      {completedItems.length > 0 && (
+        <Section title="Completed & Deleted" tone="text-green-600 dark:text-green-400">
+          <div className="space-y-2">
+            {completedItems.map(item => (
+              <div key={item.id} className="p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-medium line-through opacity-60">{item.title}</span>
+                      {item.completed && (
+                        <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
+                          Completed
+                        </span>
+                      )}
+                      {item.deleted && (
+                        <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full">
+                          Deleted
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {item.completedAt && `Completed: ${new Date(item.completedAt).toLocaleDateString()}`}
+                      {item.deletedAt && `Deleted: ${new Date(item.deletedAt).toLocaleDateString()}`}
+                    </div>
+                  </div>
+                  <Button size="sm" onClick={() => restoreItem(item)}>
+                    Restore
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Add Habit Modal */}
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Add New Habit"
+        size="lg"
+      >
+        <div className="space-y-4">
+          {/* Icon Selection */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Icon</label>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                {form.icon === 'CheckSquare' ? (
+                  <CheckSquare size={24} className="text-green-600 dark:text-green-400" />
+                ) : (
+                  <div className="text-green-600 dark:text-green-400 text-lg">?</div>
+                )}
+              </div>
+              <Button onClick={() => setShowIconPicker(true)} variant="outline">
+                {form.icon === 'CheckSquare' ? 'Change Icon' : 'Choose Icon'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Basic Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Habit Title</label>
+              <Input
+                value={form.title}
+                onChange={e => setForm({ ...form, title: e.target.value })}
+                placeholder="What habit do you want to build?"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Category</label>
+              <select
+                value={form.category}
+                onChange={e => setForm({ ...form, category: e.target.value })}
+                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+              >
+                {HABIT_CATEGORIES.map(cat => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.icon} {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Type</label>
+              <select
+                value={form.type}
+                onChange={e => setForm({ ...form, type: e.target.value })}
+                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+              >
+                <option value="binary">Binary (Done/Not Done)</option>
+                <option value="quant">Quantitative (Count)</option>
+              </select>
+            </div>
+            
+            {form.type === 'quant' && (
+              <div>
+                <label className="block text-sm font-medium mb-2">Daily Target</label>
+                <Input
+                  type="number"
+                  value={form.quantTarget}
+                  onChange={e => setForm({ ...form, quantTarget: Number(e.target.value) })}
+                  placeholder="How many per day?"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Active Days */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Active Days</label>
+            <div className="grid grid-cols-2 gap-2">
+              {ACTIVE_DAYS_OPTIONS.map(option => (
+                <button
+                  key={option.id}
+                  onClick={() => setForm({ ...form, activeDays: option.id })}
+                  className={`p-3 text-left rounded-xl border transition-colors ${
+                    form.activeDays === option.id
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
+                >
+                  <div className="font-medium">{option.name}</div>
+                  <div className="text-xs text-gray-500">{option.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Duration */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Duration</label>
+            <select
+              value={form.duration}
+              onChange={e => setForm({ ...form, duration: e.target.value })}
+              className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+            >
+              {DURATION_OPTIONS.map(option => (
+                <option key={option.id} value={option.id}>
+                  {option.name} - {option.description}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Tags</label>
+            <TagInput
+              tags={form.tags}
+              onChange={tags => setForm({ ...form, tags })}
+              placeholder="Add tags to organize your habits..."
+            />
+          </div>
+
+          {/* Reminders */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium">Reminders</label>
+              <Button onClick={addReminder} size="sm" variant="outline">
+                <Bell size={14} className="mr-1" />
+                Add Reminder
+              </Button>
+            </div>
+            {form.reminders.length > 0 ? (
+              <div className="space-y-2">
+                {form.reminders.map((reminder, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      type="time"
+                      value={reminder.time}
+                      onChange={e => updateReminder(index, 'time', e.target.value)}
+                      className="flex-1"
+                    />
+                    <Input
+                      value={reminder.message}
+                      onChange={e => updateReminder(index, 'message', e.target.value)}
+                      placeholder="Reminder message..."
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={() => removeReminder(index)}
+                      size="sm"
+                      variant="outline"
+                      className="px-2"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500 text-center py-4">
+                No reminders set. Click "Add Reminder" to create one.
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Description</label>
+            <textarea
+              value={form.description}
+              onChange={e => setForm({ ...form, description: e.target.value })}
+              placeholder="Add more details about your habit..."
+              rows={3}
+              className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800 resize-none"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" onClick={() => setShowAddModal(false)} className="flex-1">
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={addHabit} className="flex-1" disabled={!form.title.trim()}>
+              Create Habit
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Habit Detail Modal */}
+      <Modal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        title={selectedHabit?.title || 'Habit Details'}
+        size="lg"
+      >
+        {selectedHabit && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Title</label>
+                <Input
+                  value={selectedHabit.title}
+                  onChange={e => updateHabit(selectedHabit.id, { title: e.target.value })}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Category</label>
+                <select
+                  value={selectedHabit.category}
+                  onChange={e => updateHabit(selectedHabit.id, { category: e.target.value })}
+                  className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+                >
+                  {HABIT_CATEGORIES.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icon} {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Type</label>
+                <select
+                  value={selectedHabit.type}
+                  onChange={e => updateHabit(selectedHabit.id, { type: e.target.value })}
+                  className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+                >
+                  <option value="binary">Binary (Done/Not Done)</option>
+                  <option value="quant">Quantitative (Count)</option>
+                </select>
+              </div>
+              
+              {selectedHabit.type === 'quant' && (
+                <div>
+                  <label className="block text-sm font-medium mb-2">Daily Target</label>
+                  <Input
+                    type="number"
+                    value={selectedHabit.quantTarget}
+                    onChange={e => updateHabit(selectedHabit.id, { quantTarget: Number(e.target.value) })}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Active Days</label>
+              <select
+                value={selectedHabit.activeDays}
+                onChange={e => updateHabit(selectedHabit.id, { activeDays: e.target.value })}
+                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+              >
+                {ACTIVE_DAYS_OPTIONS.map(option => (
+                  <option key={option.id} value={option.id}>
+                    {option.name} - {option.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Duration</label>
+              <select
+                value={selectedHabit.duration}
+                onChange={e => updateHabit(selectedHabit.id, { duration: e.target.value })}
+                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+              >
+                {DURATION_OPTIONS.map(option => (
+                  <option key={option.id} value={option.id}>
+                    {option.name} - {option.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Tags</label>
+              <TagInput
+                tags={selectedHabit.tags || []}
+                onChange={tags => updateHabit(selectedHabit.id, { tags })}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Description</label>
+              <textarea
+                value={selectedHabit.description || ''}
+                onChange={e => updateHabit(selectedHabit.id, { description: e.target.value })}
+                rows={3}
+                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800 resize-none"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button variant="outline" onClick={() => setShowDetailModal(false)} className="flex-1">
+                Close
+              </Button>
+              <Button variant="primary" onClick={() => setShowDetailModal(false)} className="flex-1">
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Icon Picker Modal */}
+      {showIconPicker && (
+        <IconPicker
+          selectedIcon={form.icon}
+          onSelect={(icon) => {
+            console.log('Icon selected in Habits:', icon)
+            setForm({ ...form, icon })
+            setShowIconPicker(false)
+          }}
+          onClose={() => setShowIconPicker(false)}
+        />
+      )}
+    </div>
+  )
 }
 
-function calcStreak(history){
-  let streak=0
-  for(let i=0;i<365;i++){
-    const d=new Date(); d.setDate(d.getDate()-i)
-    const iso=d.toISOString().slice(0,10)
-    const v=history?.[iso]; const ok=v===true || (typeof v==='number' && v>0)
-    if(ok) streak++; else break
+function calcStreak(history) {
+  let streak = 0
+  for (let i = 0; i < 365; i++) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    const iso = d.toISOString().slice(0, 10)
+    const v = history?.[iso]
+    const ok = v === true || (typeof v === 'number' && v > 0)
+    if (ok) streak++
+    else break
   }
   return streak
 }
