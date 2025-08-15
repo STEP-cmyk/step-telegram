@@ -46,6 +46,12 @@ export const useApp = () => React.useContext(AppCtx)
 
 export function load(){ 
   try{ 
+    // Проверяем, что мы в браузере и localStorage доступен
+    if (typeof window === 'undefined' || !window.localStorage) {
+      console.log('localStorage not available, using default data')
+      return DEFAULT
+    }
+
     const stored = localStorage.getItem(LS_KEY)
     if (stored) {
       const parsed = JSON.parse(stored)
@@ -71,6 +77,12 @@ export function load(){
 
 export function save(d){ 
   try {
+    // Проверяем, что мы в браузере и localStorage доступен
+    if (typeof window === 'undefined' || !window.localStorage) {
+      console.log('localStorage not available, skipping save')
+      return
+    }
+
     localStorage.setItem(LS_KEY, JSON.stringify(d)) 
   } catch(error) {
     console.error('Error saving data to localStorage:', error)
@@ -84,16 +96,21 @@ export function AppProvider({children}){
   
   React.useEffect(()=>{ 
     try {
-      const d = load()
-      console.log('Loaded data:', d)
-      
-      // Ensure theme is properly set
-      if (!d.settings || !d.settings.theme) {
-        d.settings = { ...DEFAULT.settings, ...d.settings }
-      }
-      
-      setData(d)
-      setReady(true)
+      // Добавляем небольшую задержку для безопасной инициализации в Telegram Web App
+      const timer = setTimeout(() => {
+        const d = load()
+        console.log('Loaded data:', d)
+        
+        // Ensure theme is properly set
+        if (!d.settings || !d.settings.theme) {
+          d.settings = { ...DEFAULT.settings, ...d.settings }
+        }
+        
+        setData(d)
+        setReady(true)
+      }, 50)
+
+      return () => clearTimeout(timer)
     } catch(err) {
       console.error('Error initializing app:', err)
       setError(err)

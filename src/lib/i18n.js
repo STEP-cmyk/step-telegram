@@ -345,14 +345,23 @@ const TRANSLATIONS = {
 
 // Get current language from localStorage or default to 'ru'
 export function getCurrentLanguage() {
-  if (typeof window === 'undefined') return 'ru'
-  return localStorage.getItem('step_020_language') || 'ru'
+  if (typeof window === 'undefined' || !window.localStorage) return 'ru'
+  try {
+    return localStorage.getItem('step_020_language') || 'ru'
+  } catch (error) {
+    console.error('Error getting language from localStorage:', error)
+    return 'ru'
+  }
 }
 
 // Set language and save to localStorage
 export function setLanguage(lang) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem('step_020_language', lang)
+  if (typeof window === 'undefined' || !window.localStorage) return
+  try {
+    localStorage.setItem('step_020_language', lang)
+  } catch (error) {
+    console.error('Error setting language in localStorage:', error)
+  }
 }
 
 // Get translation for a key

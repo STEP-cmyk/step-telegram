@@ -117,8 +117,13 @@ export const THEMES = {
 
 // Get system theme preference
 export function getSystemTheme() {
-  if (typeof window === 'undefined') return 'dark'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark'
+  if (typeof window === 'undefined' || !window.matchMedia) return 'dark'
+  try {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark'
+  } catch (error) {
+    console.error('Error getting system theme:', error)
+    return 'dark'
+  }
 }
 
 // Apply theme with unified approach and enhanced contrast

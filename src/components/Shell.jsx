@@ -12,6 +12,7 @@ import { applyUIScale } from '../lib/ui'
 import { bindParallax } from '../lib/parallax'
 import { mountConfetti } from '../lib/confetti'
 import { initTG } from '../lib/tg'
+import { initTelegramDebug } from '../lib/telegram-debug'
 
 import { Settings, Home, Target, CheckSquare, Heart, NotebookText, Trophy, Zap } from 'lucide-react'
 import logo from '../assets/logo.svg'
@@ -42,17 +43,33 @@ export default function Shell({children}){
     const off = bindParallax()
     const conf = mountConfetti()
 
-    // Сообщаем адаптеру как менять тему/ник через твой стейт
-    initTG({
-      setTheme: (theme, opts) => {
-        console.log('TG setTheme called with:', theme)
-        applyTheme(theme, opts)
-      },
-      getNickname: () => data?.settings?.nickname || 'User',
-      setNickname: (nickname) => setData(d => ({ ...d, settings:{ ...d.settings, nickname } })),
-    })
+    // Инициализируем отладку Telegram WebApp
+    initTelegramDebug()
 
-    return () => { off?.(); conf?.destroy?.() }
+    // Инициализируем Telegram WebApp с задержкой для безопасности
+    const initTelegram = () => {
+      try {
+        initTG({
+          setTheme: (theme, opts) => {
+            console.log('TG setTheme called with:', theme)
+            applyTheme(theme, opts)
+          },
+          getNickname: () => data?.settings?.nickname || 'User',
+          setNickname: (nickname) => setData(d => ({ ...d, settings:{ ...d.settings, nickname } })),
+        })
+      } catch (error) {
+        console.error('Error initializing Telegram WebApp:', error)
+      }
+    }
+
+    // Задержка для безопасной инициализации в Telegram iframe
+    const timer = setTimeout(initTelegram, 100)
+
+    return () => { 
+      clearTimeout(timer)
+      off?.(); 
+      conf?.destroy?.() 
+    }
   }, [ready, data?.settings?.nickname, setData])
 
   // Show loading state while data is being initialized
