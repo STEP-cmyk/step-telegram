@@ -8,7 +8,23 @@ import TagInput from '../components/ui/TagInput'
 import SwipeableItem from '../components/ui/SwipeableItem'
 import { useApp } from '../store/app.jsx'
 import { uid, todayISO } from '../lib/utils'
+import { useTranslation } from '../lib/i18n'
 import { Plus, CheckSquare, Calendar, Bell, Target } from 'lucide-react'
+
+// Helper function to calculate streak
+function calcStreak(history) {
+  let streak = 0
+  for (let i = 0; i < 365; i++) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    const iso = d.toISOString().slice(0, 10)
+    const v = history?.[iso]
+    const ok = v === true || (typeof v === 'number' && v > 0)
+    if (ok) streak++
+    else break
+  }
+  return streak
+}
 
 const HABIT_CATEGORIES = [
   { id: 'health', name: 'Health', icon: '💊', examples: ['Drink water', 'Take vitamins', 'Exercise'] },
@@ -35,9 +51,8 @@ const DURATION_OPTIONS = [
 ]
 
 export default function Habits() {
-  console.log('Habits component is rendering')
-  
   const { data, setData, ready, error } = useApp()
+  const { t } = useTranslation()
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedHabit, setSelectedHabit] = useState(null)
@@ -55,8 +70,6 @@ export default function Habits() {
     reminders: [],
     description: ''
   })
-
-  console.log('Habits component state - ready:', ready, 'error:', error, 'data:', data)
 
   // Show error state if there's an error
   if (error) {
@@ -82,15 +95,11 @@ export default function Habits() {
     )
   }
 
-  // Debug logging
-  console.log('Habits component rendering with data:', data)
-
   // Safe data access with fallbacks
   const habits = data?.habits || []
   const completedItems = data?.completedItems || []
 
-  console.log('Habits array:', habits)
-  console.log('Completed items:', completedItems)
+
 
   // Group habits by category
   const groupedHabits = habits.reduce((acc, habit) => {
@@ -271,12 +280,7 @@ export default function Habits() {
 
   return (
     <div className="space-y-6">
-      {/* Test message to verify rendering */}
-      <div className="text-center p-4 bg-green-100 dark:bg-green-900/30 rounded-xl">
-        <h1 className="text-lg font-semibold text-green-800 dark:text-green-200">Habits Page is Working!</h1>
-        <p className="text-sm text-green-600 dark:text-green-300">Data loaded: {ready ? 'Yes' : 'No'}</p>
-        <p className="text-sm text-green-600 dark:text-green-300">Habits count: {habits.length}</p>
-      </div>
+
 
       {/* Add Habit Button */}
       <div className="text-center">
@@ -286,16 +290,16 @@ export default function Habits() {
           className="px-8 py-4 text-lg float"
         >
           <Plus size={20} className="mr-2" />
-          Add Habit
+          {t('addHabit')}
         </Button>
       </div>
 
       {/* Active Habits */}
-      <Section title="My Habits" tone="text-green-600 dark:text-green-400">
+      <Section title={t('myHabits')} tone="text-green-600 dark:text-green-400">
         {habits.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <CheckSquare size={48} className="mx-auto mb-4 opacity-50" />
-            <p>No habits yet. Create your first habit to get started!</p>
+            <p>{t('noHabitsYet')}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -735,7 +739,7 @@ export default function Habits() {
         <IconPicker
           selectedIcon={form.icon}
           onSelect={(icon) => {
-            console.log('Icon selected in Habits:', icon)
+        
             setForm({ ...form, icon })
             setShowIconPicker(false)
           }}
@@ -744,18 +748,4 @@ export default function Habits() {
       )}
     </div>
   )
-}
-
-function calcStreak(history) {
-  let streak = 0
-  for (let i = 0; i < 365; i++) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    const iso = d.toISOString().slice(0, 10)
-    const v = history?.[iso]
-    const ok = v === true || (typeof v === 'number' && v > 0)
-    if (ok) streak++
-    else break
-  }
-  return streak
 }

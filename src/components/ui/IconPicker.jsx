@@ -52,7 +52,7 @@ export default function IconPicker({ selectedIcon, onSelect, onClose }) {
   }, [])
 
   const handleIconSelect = (iconId) => {
-    console.log('Icon selected:', iconId)
+
     onSelect(iconId)
     onClose()
   }

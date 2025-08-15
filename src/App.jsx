@@ -10,6 +10,8 @@ import Wishes from './pages/Wishes'
 import Notes from './pages/Notes'
 import Competitions from './pages/Competitions'
 import Settings from './pages/Settings'
+import ThemeSelection from './pages/ThemeSelection'
+import ProtectedRoute from './components/ProtectedRoute'
 
 // Loading component for Suspense fallback
 function LoadingFallback() {
@@ -25,7 +27,6 @@ function LoadingFallback() {
 
 function AppRoutes() {
   const location = useLocation()
-  console.log('Current route:', location.pathname)
   
   return (
     <Routes>
@@ -33,16 +34,24 @@ function AppRoutes() {
       <Route path="/goals" element={<Goals />} />
       <Route path="/habits" element={<Habits />} />
       <Route path="/wishes" element={<Wishes />} />
-      <Route path="/notes" element={<Notes />} />
-      <Route path="/competitions" element={<Competitions />} />
+      <Route path="/notes" element={
+        <ProtectedRoute sectionName="Notes" settingKey="notes">
+          <Notes />
+        </ProtectedRoute>
+      } />
+      <Route path="/competitions" element={
+        <ProtectedRoute sectionName="Competitions" settingKey="competitions">
+          <Competitions />
+        </ProtectedRoute>
+      } />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/themes" element={<ThemeSelection />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
 
 export default function App(){
-  console.log('App component rendering')
   
   return (
     <ErrorBoundary>

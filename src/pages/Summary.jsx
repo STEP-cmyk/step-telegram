@@ -1,76 +1,207 @@
 import React from 'react'
-import Section from '../components/Section'
-import Button from '../components/ui/Button'
-import Badge from '../components/ui/Badge'
+import { Target, CheckSquare, Heart, Calendar, TrendingUp, AlertTriangle } from 'lucide-react'
 import { useApp } from '../store/app.jsx'
+import { useTranslation } from '../lib/i18n'
 import { todayISO } from '../lib/utils'
-import { usePlugins } from '../plugins'
+import { formatCurrency } from '../lib/currency'
+import MotivationQuote from '../components/ui/MotivationQuote'
+import SummaryTile from '../components/ui/SummaryTile'
 
-export default function Summary(){
-  const { data, setData } = useApp()
-  const t = todayISO()
-  const habits = data.habits.slice(0,4)
-  const { cards } = usePlugins()
+export default function Summary() {
+  const { data } = useApp()
+  const { t } = useTranslation()
+  const today = todayISO()
 
-  const markHabit = (id, value) => {
-    setData(d => ({
-      ...d,
-      habits: d.habits.map(h => {
-        if (h.id !== id) return h
-        const history = { ...(h.history||{}) }
-        history[t] = value ?? (h.type==='binary' ? !(history[t]===true) : (history[t]||0) + 1)
-        const streak = calcStreak(history)
-        return { ...h, history, streak, best: Math.max(h.best||0, streak) }
-      })
-    }))
-  }
+  // Calculate goals metrics
+  const goals = data.goals || []
+  const heavyGoals = goals.filter(g => g.priority === 'High').length
+  const urgentGoals = goals.filter(g => {
+    if (!g.deadline) return false
+    const deadline = new Date(g.deadline)
+    const now = new Date()
+    const diffTime = deadline - now
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays <= 7 && diffDays >= 0
+  }).length
+  const overdueGoals = goals.filter(g => {
+    if (!g.deadline) return false
+    const deadline = new Date(g.deadline)
+    const now = new Date()
+    return deadline < now
+  }).length
+  const completedThisWeek = goals.filter(g => {
+    if (!g.completedAt) return false
+    const completed = new Date(g.completedAt)
+    const now = new Date()
+    const diffTime = now - completed
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays <= 7
+  }).length
 
-  return (<div>
-    <Section title="Сегодня" right={<Badge>{new Date().toLocaleDateString()}</Badge>} tone="text-green-600 dark:text-green-400">
-      {data.habits.length === 0 ? (
-        <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-          <p>No habits yet. Create your first habit to get started!</p>
+  // Calculate habits metrics
+  const habits = data.habits || []
+  const todayCompleted = habits.filter(h => h.history?.[today] === true || (typeof h.history?.[today] === 'number' && h.history[today] > 0)).length
+  const totalHabits = habits.length
+  const longestStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak || 0)) : 0
+  const streakAtRisk = habits.filter(h => {
+    if (!h.history?.[today]) return false
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayISO = yesterday.toISOString().slice(0, 10)
+    return h.history?.[yesterdayISO] && !h.history?.[today]
+  }).length
+  const missedYesterday = habits.filter(h => {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayISO = yesterday.toISOString().slice(0, 10)
+    return h.history?.[yesterdayISO] === false || (typeof h.history?.[yesterdayISO] === 'number' && h.history[yesterdayISO] === 0)
+  }).length
+
+  // Calculate wishes metrics
+  const wishes = data.wishes || []
+  const inProgress = wishes.filter(w => !w.completed && (w.savedAmount || 0) > 0).length
+  const fullyFunded = wishes.filter(w => !w.completed && (w.savedAmount || 0) >= (w.targetAmount || 0)).length
+  const averageCompletion = wishes.length > 0 
+    ? Math.round(wishes.reduce((sum, w) => {
+        const target = w.targetAmount || 1
+        const saved = w.savedAmount || 0
+        return sum + (saved / target * 100)
+      }, 0) / wishes.length)
+    : 0
+  const largestWish = wishes.length > 0 
+    ? Math.max(...wishes.map(w => (w.targetAmount || 0) - (w.savedAmount || 0)))
+    : 0
+
+  return (
+    <div className="space-y-6">
+      {/* Motivation Quote */}
+      <MotivationQuote />
+
+      {/* Goals Section */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <Target size={20} className="text-purple-600 dark:text-purple-400" />
+          {t('goals')}
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <SummaryTile
+            title={t('heavyGoals')}
+            value={heavyGoals}
+            subtitle={t('highPriority')}
+            icon="🔥"
+            color="red"
+            route="/goals"
+          />
+          <SummaryTile
+            title={t('urgentGoals')}
+            value={urgentGoals}
+            subtitle={t('dueThisWeek')}
+            icon="⚡"
+            color="orange"
+            route="/goals"
+          />
+          <SummaryTile
+            title={t('overdueGoals')}
+            value={overdueGoals}
+            subtitle={t('pastDeadline')}
+            icon={<AlertTriangle size={16} />}
+            color="red"
+            route="/goals"
+          />
+          <SummaryTile
+            title={t('completedThisWeek')}
+            value={completedThisWeek}
+            subtitle={t('achievements')}
+            icon="✅"
+            color="green"
+            route="/goals"
+          />
         </div>
-      ) : (
-        <div className="space-y-2">
-          {data.habits.slice(0, 3).map(h => (
-            <div key={h.id} className="flex items-center justify-between rounded-2xl border border-gray-200 dark:border-gray-700 p-2">
-              <span className="text-sm">{h.title}</span>
-              <Button size="sm" variant="primary">Mark Done</Button>
-            </div>
-          ))}
-        </div>
-      )}
-    </Section>
-
-    <Section title="Сводка" tone="text-cyan-600 dark:text-cyan-400">
-      <div className="space-y-2">
-        <div className="rounded-2xl p-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">Цели: <b>{data.goals.length}</b></div>
-        <div className="rounded-2xl p-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">Привычки: <b>{data.habits.length}</b></div>
-        <div className="rounded-2xl p-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">Хотелки: <b>{data.wishes.length}</b></div>
       </div>
-    </Section>
 
-    {data.settings.tipsOnHome && (
-      <Section title="Мотивация дня" right={<Badge>on</Badge>} tone="text-orange-600 dark:text-orange-400">
-        <div className="text-center py-4">
-          <p className="text-lg font-medium mb-2">"{data.tips[0].text}"</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">— Daily Motivation</p>
+      {/* Habits Section */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <CheckSquare size={20} className="text-green-600 dark:text-green-400" />
+          {t('habits')}
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <SummaryTile
+            title={t('today')}
+            value={`${todayCompleted}/${totalHabits}`}
+            subtitle={t('completed')}
+            icon="📅"
+            color="green"
+            route="/habits"
+          />
+          <SummaryTile
+            title={t('longestStreak')}
+            value={longestStreak}
+            subtitle={t('days')}
+            icon="🔥"
+            color="orange"
+            route="/habits"
+          />
+          <SummaryTile
+            title={t('streakAtRisk')}
+            value={streakAtRisk}
+            subtitle={t('needsAction')}
+            icon="⚠️"
+            color="red"
+            route="/habits"
+          />
+          <SummaryTile
+            title={t('missedYesterday')}
+            value={missedYesterday}
+            subtitle={t('catchUp')}
+            icon="😔"
+            color="purple"
+            route="/habits"
+          />
         </div>
-      </Section>
-    )}
+      </div>
 
-    {cards.map((C, idx) => <C key={idx} />)}
-  </div>)
-}
-
-function calcStreak(history){
-  let streak=0
-  for(let i=0;i<365;i++){
-    const d=new Date(); d.setDate(d.getDate()-i)
-    const iso=d.toISOString().slice(0,10)
-    const v=history?.[iso]; const ok=v===true || (typeof v==='number' && v>0)
-    if(ok) streak++; else break
-  }
-  return streak
+      {/* Wishes Section */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <Heart size={20} className="text-pink-600 dark:text-pink-400" />
+          {t('wishes')}
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <SummaryTile
+            title={t('inProgress')}
+            value={inProgress}
+            subtitle={t('saving')}
+            icon="💰"
+            color="blue"
+            route="/wishes"
+          />
+          <SummaryTile
+            title={t('fullyFunded')}
+            value={fullyFunded}
+            subtitle={t('readyToBuy')}
+            icon="🎉"
+            color="green"
+            route="/wishes"
+          />
+          <SummaryTile
+            title={t('averageCompletion')}
+            value={`${averageCompletion}%`}
+            subtitle={t('progress')}
+            icon={<TrendingUp size={16} />}
+            color="purple"
+            route="/wishes"
+          />
+          <SummaryTile
+            title={t('largestWish')}
+            value={largestWish > 0 ? formatCurrency(largestWish, data) : formatCurrency(0, data)}
+            subtitle={t('remaining')}
+            icon="💎"
+            color="orange"
+            route="/wishes"
+          />
+        </div>
+      </div>
+    </div>
+  )
 }

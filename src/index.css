@@ -22,6 +22,26 @@
 
   /* Gradient parallax offsets (px) */
   --g1x:0px; --g1y:0px; --g2x:0px; --g2y:0px;
+
+  /* Theme variables */
+  --theme-bg: #ffffff;
+  --theme-text: #1f2937;
+  --theme-accent: #3b82f6;
+  
+  /* Theme variables - will be overridden by JavaScript */
+  --bg: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #64748b;
+  --border: #cbd5e1;
+  --border-secondary: #e2e8f0;
+  --accent: #2563eb;
+  --accent-secondary: #3b82f6;
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
 }
 
 *{ box-sizing: border-box; }
@@ -40,7 +60,8 @@ body{
   font-size: var(--fs);
   line-height: var(--lh);
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-  background: #000;
+  background: var(--bg);
+  color: var(--text);
 }
 
 #root {
@@ -67,7 +88,106 @@ body{
   flex-direction: column;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--bg);
+  color: var(--text);
 }
+
+/* Enhanced theme support for better readability */
+.theme-fading {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Ensure focus outlines are visible in all themes */
+*:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Button focus states */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Link focus states */
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  text-decoration: underline;
+}
+
+/* Ensure text remains readable on all backgrounds */
+.text-readable {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.dark .text-readable {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+/* High contrast theme specific styles */
+[data-theme="highContrast"] {
+  --bg: #000000 !important;
+  --bg-secondary: #000000 !important;
+  --bg-tertiary: #000000 !important;
+  --text: #ffffff !important;
+  --text-secondary: #ffffff !important;
+  --text-tertiary: #ffffff !important;
+  --border: #ffffff !important;
+  --border-secondary: #ffffff !important;
+  --accent: #ffff00 !important;
+  --accent-secondary: #ffff00 !important;
+  --success: #00ff00 !important;
+  --warning: #ffff00 !important;
+  --error: #ff0000 !important;
+}
+
+[data-theme="highContrast"] * {
+  border-color: #ffffff !important;
+}
+
+[data-theme="highContrast"] button,
+[data-theme="highContrast"] input,
+[data-theme="highContrast"] select,
+[data-theme="highContrast"] .card,
+[data-theme="highContrast"] .header,
+[data-theme="highContrast"] .tabbar {
+  border: 2px solid #ffffff !important;
+}
+
+[data-theme="highContrast"] button:focus,
+[data-theme="highContrast"] input:focus,
+[data-theme="highContrast"] select:focus {
+  outline: 3px solid #ffff00 !important;
+  outline-offset: 2px !important;
+}
+
+/* AMOLED theme specific styles */
+[data-theme="amoled"] {
+  --bg: #000000 !important;
+  --bg-secondary: #0a0a0a !important;
+  --bg-tertiary: #1a1a1a !important;
+}
+
+[data-theme="amoled"] .header,
+[data-theme="amoled"] .tabbar,
+[data-theme="amoled"] .card,
+[data-theme="amoled"] .bg-white,
+[data-theme="amoled"] .bg-gray-50,
+[data-theme="amoled"] .bg-gray-100,
+[data-theme="amoled"] .bg-gray-200 {
+  background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="amoled"] .bg-gray-800,
+[data-theme="amoled"] .bg-gray-900 {
+  background-color: var(--bg-tertiary) !important;
+}
+
+
 
 /* Smooth theme fade */
 html.theme-fading .app-shell{ transition: background .45s ease, color .3s ease, filter .3s ease; will-change: background, color, filter; }
@@ -569,4 +689,80 @@ html.theme-fading .app-shell{ transition: background .45s ease, color .3s ease, 
   100% {
     background-position: 200% 0;
   }
+}
+
+/* Theme-specific styles */
+.dim {
+  --theme-bg: #374151;
+  --theme-text: #e5e7eb;
+  --theme-accent: #93c5fd;
+}
+
+.amoled {
+  --theme-bg: #000000;
+  --theme-text: #ffffff;
+  --theme-accent: #60a5fa;
+}
+
+.solarized-light {
+  --theme-bg: #fdf6e3;
+  --theme-text: #586e75;
+  --theme-accent: #268bd2;
+}
+
+.solarized-dark {
+  --theme-bg: #002b36;
+  --theme-text: #839496;
+  --theme-accent: #268bd2;
+}
+
+.high-contrast {
+  --theme-bg: #000000;
+  --theme-text: #ffffff;
+  --theme-accent: #ffff00;
+}
+
+/* Switch component styles */
+.switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #d1d5db;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.switch.is-on {
+  background: #3b82f6;
+}
+
+.switch-handle {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.switch.is-on .switch-handle {
+  transform: translateX(20px);
+}
+
+/* Dark mode switch adjustments */
+.dark .switch {
+  background: #4b5563;
+}
+
+.dark .switch.is-on {
+  background: #60a5fa;
+}
+
+.dark .switch-handle {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }

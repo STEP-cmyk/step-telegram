@@ -8,13 +8,14 @@ import IconPicker from '../components/ui/IconPicker'
 import TagInput from '../components/ui/TagInput'
 import SwipeableItem from '../components/ui/SwipeableItem'
 import { useApp } from '../store/app.jsx'
-import { uid, currency } from '../lib/utils'
+import { uid } from '../lib/utils'
+import { formatCurrency } from '../lib/currency'
+import { useTranslation } from '../lib/i18n'
 import { Plus, Heart, Calendar, Link, Tag, Star, Target } from 'lucide-react'
 
 export default function Wishes() {
-  console.log('Wishes component is rendering')
-  
   const { data, setData, ready, error } = useApp()
+  const { t } = useTranslation()
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedWish, setSelectedWish] = useState(null)
@@ -31,8 +32,6 @@ export default function Wishes() {
     priority: 'Medium',
     description: ''
   })
-
-  console.log('Wishes component state - ready:', ready, 'error:', error, 'data:', data)
 
   // Show error state if there's an error
   if (error) {
@@ -58,15 +57,11 @@ export default function Wishes() {
     )
   }
 
-  // Debug logging
-  console.log('Wishes component rendering with data:', data)
-
   // Safe data access with fallbacks
   const wishes = data?.wishes || []
   const completedItems = data?.completedItems || []
 
-  console.log('Wishes array:', wishes)
-  console.log('Completed items:', completedItems)
+
 
   // Group wishes by category
   const groupedWishes = wishes.reduce((acc, wish) => {
@@ -158,12 +153,7 @@ export default function Wishes() {
 
   return (
     <div className="space-y-6">
-      {/* Test message to verify rendering */}
-      <div className="text-center p-4 bg-green-100 dark:bg-green-900/30 rounded-xl">
-        <h1 className="text-lg font-semibold text-green-800 dark:text-green-200">Wishes Page is Working!</h1>
-        <p className="text-sm text-green-600 dark:text-green-300">Data loaded: {ready ? 'Yes' : 'No'}</p>
-        <p className="text-sm text-green-600 dark:text-green-300">Wishes count: {wishes.length}</p>
-      </div>
+
 
       {/* Add Wish Button */}
       <div className="text-center">
@@ -173,16 +163,16 @@ export default function Wishes() {
           className="px-8 py-4 text-lg float"
         >
           <Plus size={20} className="mr-2" />
-          Add Wish
+          {t('addWish')}
         </Button>
       </div>
 
       {/* Active Wishes */}
-      <Section title="My Wishes" tone="text-blue-600 dark:text-blue-400">
+      <Section title={t('myWishes')} tone="text-blue-600 dark:text-blue-400">
         {wishes.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <Heart size={48} className="mx-auto mb-4 opacity-50" />
-            <p>No wishes yet. Add your first wish to get started!</p>
+            <p>{t('noWishesYet')}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -232,11 +222,11 @@ export default function Wishes() {
                               <div className="flex items-center gap-4">
                                 <span className="flex items-center gap-1">
                                   <Target size={14} />
-                                  Target: {currency(wish.targetAmount)}
+                                  Target: {formatCurrency(wish.targetAmount, data)}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Tag size={14} />
-                                  Saved: {currency(wish.savedAmount)}
+                                  Saved: {formatCurrency(wish.savedAmount, data)}
                                 </span>
                                 {wish.deadline && (
                                   <span className="flex items-center gap-1">
@@ -249,7 +239,7 @@ export default function Wishes() {
                             
                             <Progress current={wish.savedAmount || 0} target={wish.targetAmount || 0} />
                             <div className="text-xs text-gray-500 mt-1">
-                              {currency(wish.savedAmount || 0)} / {currency(wish.targetAmount)} saved
+                              {formatCurrency(wish.savedAmount || 0, data)} / {formatCurrency(wish.targetAmount, data)} saved
                             </div>
                             
                             {wish.tags && wish.tags.length > 0 && (
@@ -587,7 +577,7 @@ export default function Wishes() {
         <IconPicker
           selectedIcon={form.icon}
           onSelect={(icon) => {
-            console.log('Icon selected in Wishes:', icon)
+        
             setForm({ ...form, icon })
             setShowIconPicker(false)
           }}

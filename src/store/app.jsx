@@ -4,12 +4,22 @@ const LS_KEY = 'step_020'
 
 export const DEFAULT = {
   settings: {
-    theme: 'dark',              // только 'light' | 'dark'
+    theme: 'dark',              // 'light' | 'dark' | 'dim' | 'amoled' | 'solarizedLight' | 'solarizedDark' | 'highContrast' | 'system'
+    language: 'ru',             // 'en' | 'ru'
     defaultTab: 'summary',
     tipsOnHome: true,
     nickname: 'User',
     quietHours: { enabled: true, from: 22, to: 7 },
     currency: '₽',
+    units: {
+      currency: 'RUB',          // 'RUB' | 'USD' | 'EUR'
+      weight: 'kg',             // 'kg' | 'lb'
+      length: 'cm',             // 'cm' | 'ft'
+    },
+    visibility: {
+      notes: true,              // Show/hide Notes section
+      competitions: true,       // Show/hide Competitions section
+    },
   },
   goals: [], 
   habits: [], 

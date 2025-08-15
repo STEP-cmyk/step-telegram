@@ -9,12 +9,12 @@ import TagInput from '../components/ui/TagInput'
 import SwipeableItem from '../components/ui/SwipeableItem'
 import { useApp } from '../store/app.jsx'
 import { uid } from '../lib/utils'
+import { useTranslation } from '../lib/i18n'
 import { Plus, Target, Calendar, Tag, Star } from 'lucide-react'
 
 export default function Goals() {
-  console.log('Goals component is rendering')
-  
   const { data, setData, ready, error } = useApp()
+  const { t } = useTranslation()
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedGoal, setSelectedGoal] = useState(null)
@@ -32,8 +32,6 @@ export default function Goals() {
     attachments: [],
     category: 'Personal'
   })
-
-  console.log('Goals component state - ready:', ready, 'error:', error, 'data:', data)
 
   // Show error state if there's an error
   if (error) {
@@ -59,28 +57,45 @@ export default function Goals() {
     )
   }
 
-  // Debug logging
-  console.log('Goals component rendering with data:', data)
-
   // Safe data access with fallbacks
   const goals = data?.goals || []
   const completedItems = data?.completedItems || []
 
-  console.log('Goals array:', goals)
-  console.log('Completed items:', completedItems)
 
-  // Group goals by category
-  const groupedGoals = goals.reduce((acc, goal) => {
-    const category = goal.category || 'Uncategorized'
-    if (!acc[category]) {
-      acc[category] = []
+
+  // Group goals by priority and status
+  const heavyGoals = goals.filter(g => g.priority === 'High' && !g.completed)
+  const urgentGoals = goals.filter(g => {
+    if (g.completed || g.priority === 'High') return false
+    if (!g.deadline) return false
+    const deadline = new Date(g.deadline)
+    const now = new Date()
+    const diffTime = deadline - now
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays <= 7 && diffDays >= 0
+  })
+  const overdueGoals = goals.filter(g => {
+    if (g.completed) return false
+    if (!g.deadline) return false
+    const deadline = new Date(g.deadline)
+    const now = new Date()
+    return deadline < now
+  })
+  const completedGoals = goals.filter(g => g.completed)
+  const otherGoals = goals.filter(g => {
+    if (g.completed || g.priority === 'High') return false
+    if (g.deadline) {
+      const deadline = new Date(g.deadline)
+      const now = new Date()
+      const diffTime = deadline - now
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      if (diffDays <= 7) return false
     }
-    acc[category].push(goal)
-    return acc
-  }, {})
+    return true
+  })
 
   // Simple test render to verify the page is working
-  console.log('Goals page is rendering successfully')
+
 
   const addGoal = () => {
     const newGoal = {
@@ -174,12 +189,7 @@ export default function Goals() {
 
   return (
     <div className="space-y-6">
-      {/* Test message to verify rendering */}
-      <div className="text-center p-4 bg-green-100 dark:bg-green-900/30 rounded-xl">
-        <h1 className="text-lg font-semibold text-green-800 dark:text-green-200">Goals Page is Working!</h1>
-        <p className="text-sm text-green-600 dark:text-green-300">Data loaded: {ready ? 'Yes' : 'No'}</p>
-        <p className="text-sm text-green-600 dark:text-green-300">Goals count: {goals.length}</p>
-      </div>
+
       {/* Add Goal Button */}
       <div className="text-center">
         <Button 
@@ -188,26 +198,15 @@ export default function Goals() {
           className="px-8 py-4 text-lg float"
         >
           <Plus size={20} className="mr-2" />
-          Add Goal
+          {t('addGoal')}
         </Button>
       </div>
 
-      {/* Active Goals */}
-      <Section title="My Goals" tone="text-purple-600 dark:text-purple-400">
-        {goals.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <Target size={48} className="mx-auto mb-4 opacity-50" />
-            <p>No goals yet. Create your first goal to get started!</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {Object.entries(groupedGoals).map(([category, categoryGoals]) => (
-              <div key={category} className="space-y-3">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
-                  {category} ({categoryGoals.length})
-                </h3>
-                <div className="space-y-3">
-                  {categoryGoals.map((goal, index) => (
+      {/* Heavy Goals */}
+      {heavyGoals.length > 0 && (
+        <Section title={t('heavyGoals')} tone="text-red-600 dark:text-red-400">
+          <div className="space-y-3">
+            {heavyGoals.map((goal, index) => (
                     <SwipeableItem
                       key={goal.id}
                       onSwipeRight={() => completeGoal(goal.id)}
@@ -281,11 +280,340 @@ export default function Goals() {
                     </SwipeableItem>
                   ))}
                 </div>
-              </div>
+              </Section>
+            )}
+
+      {/* Urgent Goals */}
+      {urgentGoals.length > 0 && (
+        <Section title={t('urgentGoals')} tone="text-orange-600 dark:text-orange-400">
+          <div className="space-y-3">
+            {urgentGoals.map((goal, index) => (
+              <SwipeableItem
+                key={goal.id}
+                onSwipeRight={() => completeGoal(goal.id)}
+                onSwipeLeft={() => openDetailModal(goal)}
+                onEdit={() => openDetailModal(goal)}
+                onDelete={() => deleteGoal(goal.id)}
+                className={`p-4 stagger-item`}
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                      <Target size={20} className="text-orange-600 dark:text-orange-400" />
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium truncate">{goal.title}</h3>
+                      <span className="text-xs px-2 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
+                        ⚡ {goal.priority}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      {goal.deadline && (
+                        <span className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          {goal.deadline}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <Progress current={goal.current || 0} target={goal.target || 0} />
+                    <div className="text-xs text-gray-500 mt-1">
+                      {goal.current || 0} / {goal.target} {goal.unit}
+                    </div>
+                    
+                    {goal.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {goal.tags.slice(0, 3).map(tag => (
+                          <span key={tag} className="text-xs px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                        {goal.tags.length > 3 && (
+                          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full">
+                            +{goal.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col gap-1">
+                    <Button 
+                      variant="primary" 
+                      size="sm"
+                      onClick={() => updateGoal(goal.id, { current: Math.min((goal.current || 0) + 1, goal.target || Infinity) })}
+                    >
+                      +1 {goal.unit}
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => updateGoal(goal.id, { current: Math.max((goal.current || 0) - 1, 0) })}
+                    >
+                      -1
+                    </Button>
+                  </div>
+                </div>
+              </SwipeableItem>
             ))}
           </div>
-        )}
-      </Section>
+        </Section>
+      )}
+
+      {/* Overdue Goals */}
+      {overdueGoals.length > 0 && (
+        <Section title={t('overdueGoals')} tone="text-red-600 dark:text-red-400">
+          <div className="space-y-3">
+            {overdueGoals.map((goal, index) => (
+              <SwipeableItem
+                key={goal.id}
+                onSwipeRight={() => completeGoal(goal.id)}
+                onSwipeLeft={() => openDetailModal(goal)}
+                onEdit={() => openDetailModal(goal)}
+                onDelete={() => deleteGoal(goal.id)}
+                className={`p-4 stagger-item`}
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                      <Target size={20} className="text-red-600 dark:text-red-400" />
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium truncate">{goal.title}</h3>
+                      <span className="text-xs px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                        ⚠️ {t('overdue')}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      {goal.deadline && (
+                        <span className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          {goal.deadline}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <Progress current={goal.current || 0} target={goal.target || 0} />
+                    <div className="text-xs text-gray-500 mt-1">
+                      {goal.current || 0} / {goal.target} {goal.unit}
+                    </div>
+                    
+                    {goal.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {goal.tags.slice(0, 3).map(tag => (
+                          <span key={tag} className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                        {goal.tags.length > 3 && (
+                          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full">
+                            +{goal.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col gap-1">
+                    <Button 
+                      variant="primary" 
+                      size="sm"
+                      onClick={() => updateGoal(goal.id, { current: Math.min((goal.current || 0) + 1, goal.target || Infinity) })}
+                    >
+                      +1 {goal.unit}
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => updateGoal(goal.id, { current: Math.max((goal.current || 0) - 1, 0) })}
+                    >
+                      -1
+                    </Button>
+                  </div>
+                </div>
+              </SwipeableItem>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Other Goals */}
+      {otherGoals.length > 0 && (
+        <Section title={t('otherGoals')} tone="text-blue-600 dark:text-blue-400">
+          <div className="space-y-3">
+            {otherGoals.map((goal, index) => (
+              <SwipeableItem
+                key={goal.id}
+                onSwipeRight={() => completeGoal(goal.id)}
+                onSwipeLeft={() => openDetailModal(goal)}
+                onEdit={() => openDetailModal(goal)}
+                onDelete={() => deleteGoal(goal.id)}
+                className={`p-4 stagger-item`}
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <Target size={20} className="text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium truncate">{goal.title}</h3>
+                      <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                        {getPriorityIcon(goal.priority)} {goal.priority}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      {goal.deadline && (
+                        <span className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          {goal.deadline}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <Progress current={goal.current || 0} target={goal.target || 0} />
+                    <div className="text-xs text-gray-500 mt-1">
+                      {goal.current || 0} / {goal.target} {goal.unit}
+                    </div>
+                    
+                    {goal.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {goal.tags.slice(0, 3).map(tag => (
+                          <span key={tag} className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                        {goal.tags.length > 3 && (
+                          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full">
+                            +{goal.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col gap-1">
+                    <Button 
+                      variant="primary" 
+                      size="sm"
+                      onClick={() => updateGoal(goal.id, { current: Math.min((goal.current || 0) + 1, goal.target || Infinity) })}
+                    >
+                      +1 {goal.unit}
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => updateGoal(goal.id, { current: Math.max((goal.current || 0) - 1, 0) })}
+                    >
+                      -1
+                    </Button>
+                  </div>
+                </div>
+              </SwipeableItem>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Completed Goals */}
+      {completedGoals.length > 0 && (
+        <Section title={t('completedGoals')} tone="text-green-600 dark:text-green-400">
+          <div className="space-y-3">
+            {completedGoals.map((goal, index) => (
+              <SwipeableItem
+                key={goal.id}
+                onSwipeRight={() => completeGoal(goal.id)}
+                onSwipeLeft={() => openDetailModal(goal)}
+                onEdit={() => openDetailModal(goal)}
+                onDelete={() => deleteGoal(goal.id)}
+                className={`p-4 stagger-item opacity-75`}
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                      <Target size={20} className="text-green-600 dark:text-green-400" />
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium truncate line-through">{goal.title}</h3>
+                      <span className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                        ✅ {t('completed')}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      {goal.deadline && (
+                        <span className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          {goal.deadline}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <Progress current={goal.current || 0} target={goal.target || 0} />
+                    <div className="text-xs text-gray-500 mt-1">
+                      {goal.current || 0} / {goal.target} {goal.unit}
+                    </div>
+                    
+                    {goal.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {goal.tags.slice(0, 3).map(tag => (
+                          <span key={tag} className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                        {goal.tags.length > 3 && (
+                          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full">
+                            +{goal.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col gap-1">
+                    <Button 
+                      variant="primary" 
+                      size="sm"
+                      onClick={() => updateGoal(goal.id, { current: Math.min((goal.current || 0) + 1, goal.target || Infinity) })}
+                    >
+                      +1 {goal.unit}
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => updateGoal(goal.id, { current: Math.max((goal.current || 0) - 1, 0) })}
+                    >
+                      -1
+                    </Button>
+                  </div>
+                </div>
+              </SwipeableItem>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Empty State */}
+      {goals.length === 0 && (
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <Target size={48} className="mx-auto mb-4 opacity-50" />
+          <p>{t('noGoalsYet')}</p>
+        </div>
+      )}
 
       {/* Completed/Deleted Items */}
       {completedItems.length > 0 && (
@@ -574,7 +902,7 @@ export default function Goals() {
         <IconPicker
           selectedIcon={form.icon}
           onSelect={(icon) => {
-            console.log('Icon selected in Goals:', icon)
+        
             setForm({ ...form, icon })
             setShowIconPicker(false)
           }}
