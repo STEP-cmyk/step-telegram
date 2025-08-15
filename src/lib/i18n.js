@@ -1,4 +1,5 @@
 import React from 'react'
+import { safeGet, safeSet } from './safe-storage'
 
 // Internationalization system
 const TRANSLATIONS = {
@@ -48,8 +49,9 @@ const TRANSLATIONS = {
     wishes: 'Wishes',
     heavyGoals: 'Heavy Goals',
     urgentGoals: 'Urgent Goals',
-    overdueGoals: 'Overdue Goals',
-    completedThisWeek: 'Completed This Week',
+         overdueGoals: 'Overdue Goals',
+     completedGoals: 'Completed Goals',
+     completedThisWeek: 'Completed This Week',
     today: 'Today',
     completed: 'Completed',
     otherGoals: 'Other Goals',
@@ -79,10 +81,11 @@ const TRANSLATIONS = {
     noGoalsYet: 'No goals yet. Create your first goal to get started!',
     addGoal: 'Add Goal',
     goalTitle: 'Goal Title',
-    deadline: 'Deadline',
-    unit: 'Unit',
-    target: 'Target',
-    priority: 'Priority',
+         deadline: 'Deadline',
+     unit: 'Unit',
+     target: 'Target',
+     currentProgress: 'Current Progress',
+     priority: 'Priority',
     category: 'Category',
     description: 'Description',
     createGoal: 'Create Goal',
@@ -218,8 +221,9 @@ const TRANSLATIONS = {
     wishes: 'Хотелки',
     heavyGoals: 'Тяжелые цели',
     urgentGoals: 'Срочные цели',
-    overdueGoals: 'Просроченные',
-    completedThisWeek: 'Завершено на неделе',
+         overdueGoals: 'Просроченные',
+     completedGoals: 'Завершенные цели',
+     completedThisWeek: 'Завершено на неделе',
     today: 'Сегодня',
     completed: 'Завершено',
     otherGoals: 'Другие цели',
@@ -249,10 +253,11 @@ const TRANSLATIONS = {
     noGoalsYet: 'Пока нет целей. Создайте первую цель для начала!',
     addGoal: 'Добавить цель',
     goalTitle: 'Название цели',
-    deadline: 'Срок',
-    unit: 'Единица',
-    target: 'Цель',
-    priority: 'Приоритет',
+         deadline: 'Срок',
+     unit: 'Единица',
+     target: 'Цель',
+     currentProgress: 'Текущий прогресс',
+     priority: 'Приоритет',
     category: 'Категория',
     description: 'Описание',
     createGoal: 'Создать цель',
@@ -345,22 +350,20 @@ const TRANSLATIONS = {
 
 // Get current language from localStorage or default to 'ru'
 export function getCurrentLanguage() {
-  if (typeof window === 'undefined' || !window.localStorage) return 'ru'
   try {
-    return localStorage.getItem('step_020_language') || 'ru'
+    return safeGet('step_020_language', 'ru')
   } catch (error) {
-    console.error('Error getting language from localStorage:', error)
+    console.error('Error getting language:', error)
     return 'ru'
   }
 }
 
 // Set language and save to localStorage
 export function setLanguage(lang) {
-  if (typeof window === 'undefined' || !window.localStorage) return
   try {
-    localStorage.setItem('step_020_language', lang)
+    safeSet('step_020_language', lang)
   } catch (error) {
-    console.error('Error setting language in localStorage:', error)
+    console.error('Error setting language:', error)
   }
 }
 

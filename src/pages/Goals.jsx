@@ -93,68 +93,90 @@ export default function Goals() {
   })
 
   const addGoal = () => {
-    const newGoal = {
-      id: uid(),
-      ...form,
-      createdAt: new Date().toISOString(),
-      completed: false,
-      deleted: false
+    try {
+      const newGoal = {
+        id: uid(),
+        ...form,
+        createdAt: new Date().toISOString(),
+        completed: false,
+        deleted: false
+      }
+      setData(d => ({ 
+        ...d, 
+        goals: [...(d.goals || []), newGoal] 
+      }))
+      setForm({
+        title: '',
+        deadline: '',
+        unit: '',
+        target: 10,
+        current: 0,
+        icon: 'Target',
+        tags: [],
+        priority: 'Medium',
+        description: '',
+        attachments: [],
+        category: 'Personal'
+      })
+      setShowAddModal(false)
+    } catch (error) {
+      console.error('Error adding goal:', error)
+      // Show user-friendly error message
+      alert('Failed to add goal. Please try again.')
     }
-    setData(d => ({ 
-      ...d, 
-      goals: [...(d.goals || []), newGoal] 
-    }))
-    setForm({
-      title: '',
-      deadline: '',
-      unit: '',
-      target: 10,
-      current: 0,
-      icon: 'Target',
-      tags: [],
-      priority: 'Medium',
-      description: '',
-      attachments: [],
-      category: 'Personal'
-    })
-    setShowAddModal(false)
   }
 
   const updateGoal = (id, patch) => {
-    setData(d => ({ 
-      ...d, 
-      goals: (d.goals || []).map(g => g.id === id ? { ...g, ...patch } : g) 
-    }))
+    try {
+      setData(d => ({ 
+        ...d, 
+        goals: (d.goals || []).map(g => g.id === id ? { ...g, ...patch } : g) 
+      }))
+    } catch (error) {
+      console.error('Error updating goal:', error)
+    }
   }
 
   const completeGoal = (id) => {
-    const goal = goals.find(g => g.id === id)
-    if (goal) {
-      setData(d => ({
-        ...d,
-        goals: (d.goals || []).filter(g => g.id !== id),
-        completedItems: [...(d.completedItems || []), { ...goal, completed: true, completedAt: new Date().toISOString() }]
-      }))
+    try {
+      const goal = goals.find(g => g.id === id)
+      if (goal) {
+        setData(d => ({
+          ...d,
+          goals: (d.goals || []).filter(g => g.id !== id),
+          completedItems: [...(d.completedItems || []), { ...goal, completed: true, completedAt: new Date().toISOString() }]
+        }))
+      }
+    } catch (error) {
+      console.error('Error completing goal:', error)
     }
   }
 
   const deleteGoal = (id) => {
-    const goal = goals.find(g => g.id === id)
-    if (goal) {
-      setData(d => ({
-        ...d,
-        goals: (d.goals || []).filter(g => g.id !== id),
-        completedItems: [...(d.completedItems || []), { ...goal, deleted: true, deletedAt: new Date().toISOString() }]
-      }))
+    try {
+      const goal = goals.find(g => g.id === id)
+      if (goal) {
+        setData(d => ({
+          ...d,
+          goals: (d.goals || []).filter(g => g.id !== id),
+          completedItems: [...(d.completedItems || []), { ...goal, deleted: true, deletedAt: new Date().toISOString() }]
+        }))
+      }
+    } catch (error) {
+      console.error('Error deleting goal:', error)
     }
   }
 
   const restoreItem = (item) => {
-    setData(d => ({
-      ...d,
-      completedItems: (d.completedItems || []).filter(i => i.id !== item.id),
-      goals: [...(d.goals || []), { ...item, completed: false, deleted: false, completedAt: undefined, deletedAt: undefined }]
-    }))
+    try {
+      setData(d => ({
+        ...d,
+        completedItems: (d.completedItems || []).filter(i => i.id !== item.id),
+        goals: [...(d.goals || []), { ...item, completed: false, deleted: false, completedAt: undefined, deletedAt: undefined }]
+      }))
+    } catch (error) {
+      console.error('Error restoring item:', error)
+    }
   }
 
   const openDetailModal = (goal) => {

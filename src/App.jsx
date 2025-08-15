@@ -52,6 +52,46 @@ function AppRoutes() {
 }
 
 export default function App(){
+  // Initialize Telegram WebApp on first render
+  React.useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+        console.log('Initializing Telegram WebApp...')
+        window.Telegram.WebApp.ready()
+        console.log('Telegram WebApp ready called successfully')
+      }
+    } catch (error) {
+      console.error('Error initializing Telegram WebApp:', error)
+    }
+  }, [])
+
+  // Global error handlers for iOS webview
+  React.useEffect(() => {
+    const handleError = (event) => {
+      console.error('Global error caught:', {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        error: event.error
+      })
+    }
+
+    const handleUnhandledRejection = (event) => {
+      console.error('Unhandled promise rejection:', {
+        reason: event.reason,
+        promise: event.promise
+      })
+    }
+
+    window.addEventListener('error', handleError)
+    window.addEventListener('unhandledrejection', handleUnhandledRejection)
+
+    return () => {
+      window.removeEventListener('error', handleError)
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+    }
+  }, [])
   
   return (
     <ErrorBoundary>

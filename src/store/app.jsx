@@ -1,4 +1,5 @@
 import React from 'react'
+import { safeGet, safeSet } from '../lib/safe-storage'
 
 const LS_KEY = 'step_020'
 
@@ -46,46 +47,33 @@ export const useApp = () => React.useContext(AppCtx)
 
 export function load(){ 
   try{ 
-    // Проверяем, что мы в браузере и localStorage доступен
-    if (typeof window === 'undefined' || !window.localStorage) {
-      console.log('localStorage not available, using default data')
-      return DEFAULT
-    }
-
-    const stored = localStorage.getItem(LS_KEY)
+    const stored = safeGet(LS_KEY)
     if (stored) {
-      const parsed = JSON.parse(stored)
       // Ensure all required arrays exist
       return {
         ...DEFAULT,
-        ...parsed,
-        goals: parsed.goals || [],
-        habits: parsed.habits || [],
-        wishes: parsed.wishes || [],
-        completedItems: parsed.completedItems || [],
-        journals: parsed.journals || DEFAULT.journals,
-        competitions: parsed.competitions || DEFAULT.competitions,
-        tips: parsed.tips || DEFAULT.tips
+        ...stored,
+        goals: stored.goals || [],
+        habits: stored.habits || [],
+        wishes: stored.wishes || [],
+        completedItems: stored.completedItems || [],
+        journals: stored.journals || DEFAULT.journals,
+        competitions: stored.competitions || DEFAULT.competitions,
+        tips: stored.tips || DEFAULT.tips
       }
     }
     return DEFAULT
   } catch(error) {
-    console.error('Error loading data from localStorage:', error)
+    console.error('Error loading data:', error)
     return DEFAULT
   }
 }
 
 export function save(d){ 
   try {
-    // Проверяем, что мы в браузере и localStorage доступен
-    if (typeof window === 'undefined' || !window.localStorage) {
-      console.log('localStorage not available, skipping save')
-      return
-    }
-
-    localStorage.setItem(LS_KEY, JSON.stringify(d)) 
+    safeSet(LS_KEY, d)
   } catch(error) {
-    console.error('Error saving data to localStorage:', error)
+    console.error('Error saving data:', error)
   }
 }
 
