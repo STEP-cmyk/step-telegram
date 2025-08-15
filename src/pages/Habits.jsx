@@ -279,7 +279,7 @@ export default function Habits() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
 
 
       {/* Add Habit Button */}

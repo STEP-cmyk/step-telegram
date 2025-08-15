@@ -46,7 +46,7 @@ export default function ThemeSelection() {
   }, [currentTheme])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <button

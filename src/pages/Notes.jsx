@@ -14,7 +14,7 @@ export default function Notes(){
   const addJournal = () => setData(d => ({ ...d, journals:[...d.journals, { id:uid(), entries:[], ...jform }] }))
   const addEntry = () => setData(d => ({ ...d, journals:d.journals.map(j => j.id===entry.journalId? { ...j, entries:[{ id:uid(), date:new Date().toISOString(), title: entry.title, content: entry.content }, ...j.entries] } : j) }))
 
-  return (<div>
+  return (<div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
     <Section title="Журналы" tone="var(--clr-note)">
       <div className="flex flex-wrap gap-2 mb-3">
         {data.journals.map(j => (<div key={j.id} className="rounded-2xl px-3 py-2" style={{border:'1px solid var(--border)'}}>{j.name}</div>))}

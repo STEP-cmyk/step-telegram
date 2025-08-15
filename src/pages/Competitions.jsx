@@ -23,7 +23,7 @@ export default function Competitions(){
     setData(d => ({ ...d, competitions:{ ...d.competitions, my:[...d.competitions.my, { id:uid(), inviteCode:uid().slice(0,6).toUpperCase(), ...form, participants:[], leaderboard:[] }] } }))
   }
 
-  return (<div>
+  return (<div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
     <Section title="Публичные челленджи" tone="var(--clr-compet)">
       <div className="grid md:grid-cols-2 gap-2">
         {data.competitions.public.map(c => (

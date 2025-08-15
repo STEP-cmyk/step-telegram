@@ -61,8 +61,6 @@ export default function Goals() {
   const goals = data?.goals || []
   const completedItems = data?.completedItems || []
 
-
-
   // Group goals by priority and status
   const heavyGoals = goals.filter(g => g.priority === 'High' && !g.completed)
   const urgentGoals = goals.filter(g => {
@@ -93,9 +91,6 @@ export default function Goals() {
     }
     return true
   })
-
-  // Simple test render to verify the page is working
-
 
   const addGoal = () => {
     const newGoal = {
@@ -135,7 +130,6 @@ export default function Goals() {
   const completeGoal = (id) => {
     const goal = goals.find(g => g.id === id)
     if (goal) {
-      // Move to completed items
       setData(d => ({
         ...d,
         goals: (d.goals || []).filter(g => g.id !== id),
@@ -147,7 +141,6 @@ export default function Goals() {
   const deleteGoal = (id) => {
     const goal = goals.find(g => g.id === id)
     if (goal) {
-      // Move to completed items
       setData(d => ({
         ...d,
         goals: (d.goals || []).filter(g => g.id !== id),
@@ -188,8 +181,7 @@ export default function Goals() {
   }
 
   return (
-    <div className="space-y-6">
-
+    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Add Goal Button */}
       <div className="text-center">
         <Button 
@@ -207,81 +199,81 @@ export default function Goals() {
         <Section title={t('heavyGoals')} tone="text-red-600 dark:text-red-400">
           <div className="space-y-3">
             {heavyGoals.map((goal, index) => (
-                    <SwipeableItem
-                      key={goal.id}
-                      onSwipeRight={() => completeGoal(goal.id)}
-                      onSwipeLeft={() => openDetailModal(goal)}
-                      onEdit={() => openDetailModal(goal)}
-                      onDelete={() => deleteGoal(goal.id)}
-                      className={`p-4 stagger-item`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                            <Target size={20} className="text-blue-600 dark:text-blue-400" />
-                          </div>
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-medium truncate">{goal.title}</h3>
-                            <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
-                              {getPriorityIcon(goal.priority)} {goal.priority}
-                            </span>
-                          </div>
-                          
-                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                            {goal.deadline && (
-                              <span className="flex items-center gap-1">
-                                <Calendar size={14} />
-                                {goal.deadline}
-                              </span>
-                            )}
-                          </div>
-                          
-                          <Progress current={goal.current || 0} target={goal.target || 0} />
-                          <div className="text-xs text-gray-500 mt-1">
-                            {goal.current || 0} / {goal.target} {goal.unit}
-                          </div>
-                          
-                          {goal.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {goal.tags.slice(0, 3).map(tag => (
-                                <span key={tag} className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
-                                  {tag}
-                                </span>
-                              ))}
-                              {goal.tags.length > 3 && (
-                                <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full">
-                                  +{goal.tags.length - 3}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex flex-col gap-1">
-                          <Button 
-                            variant="primary" 
-                            size="sm"
-                            onClick={() => updateGoal(goal.id, { current: Math.min((goal.current || 0) + 1, goal.target || Infinity) })}
-                          >
-                            +1 {goal.unit}
-                          </Button>
-                          <Button 
-                            size="sm"
-                            onClick={() => updateGoal(goal.id, { current: Math.max((goal.current || 0) - 1, 0) })}
-                          >
-                            -1
-                          </Button>
-                        </div>
+              <SwipeableItem
+                key={goal.id}
+                onSwipeRight={() => completeGoal(goal.id)}
+                onSwipeLeft={() => openDetailModal(goal)}
+                onEdit={() => openDetailModal(goal)}
+                onDelete={() => deleteGoal(goal.id)}
+                className={`p-4 stagger-item`}
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <Target size={20} className="text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium truncate">{goal.title}</h3>
+                      <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                        {getPriorityIcon(goal.priority)} {goal.priority}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      {goal.deadline && (
+                        <span className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          {goal.deadline}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <Progress current={goal.current || 0} target={goal.target || 0} />
+                    <div className="text-xs text-gray-500 mt-1">
+                      {goal.current || 0} / {goal.target} {goal.unit}
+                    </div>
+                    
+                    {goal.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {goal.tags.slice(0, 3).map(tag => (
+                          <span key={tag} className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
+                            {tag}
+                          </span>
+                        ))}
+                        {goal.tags.length > 3 && (
+                          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full">
+                            +{goal.tags.length - 3}
+                          </span>
+                        )}
                       </div>
-                    </SwipeableItem>
-                  ))}
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col gap-1">
+                    <Button 
+                      variant="primary" 
+                      size="sm"
+                      onClick={() => updateGoal(goal.id, { current: Math.min((goal.current || 0) + 1, goal.target || Infinity) })}
+                    >
+                      +1 {goal.unit}
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => updateGoal(goal.id, { current: Math.max((goal.current || 0) - 1, 0) })}
+                    >
+                      -1
+                    </Button>
+                  </div>
                 </div>
-              </Section>
-            )}
+              </SwipeableItem>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* Urgent Goals */}
       {urgentGoals.length > 0 && (
@@ -389,7 +381,7 @@ export default function Goals() {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-medium truncate">{goal.title}</h3>
                       <span className="text-xs px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
-                        ⚠️ {t('overdue')}
+                        {t('overdue')} {goal.priority}
                       </span>
                     </div>
                     
@@ -469,7 +461,7 @@ export default function Goals() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-medium truncate">{goal.title}</h3>
-                      <span className="text-xs px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                         {getPriorityIcon(goal.priority)} {goal.priority}
                       </span>
                     </div>
@@ -537,7 +529,7 @@ export default function Goals() {
                 onSwipeLeft={() => openDetailModal(goal)}
                 onEdit={() => openDetailModal(goal)}
                 onDelete={() => deleteGoal(goal.id)}
-                className={`p-4 stagger-item opacity-75`}
+                className={`p-4 stagger-item`}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="flex items-start gap-3">
@@ -549,9 +541,9 @@ export default function Goals() {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium truncate line-through">{goal.title}</h3>
+                      <h3 className="font-medium truncate">{goal.title}</h3>
                       <span className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
-                        ✅ {t('completed')}
+                        ✅ {goal.priority}
                       </span>
                     </div>
                     
@@ -615,194 +607,128 @@ export default function Goals() {
         </div>
       )}
 
-      {/* Completed/Deleted Items */}
-      {completedItems.length > 0 && (
-        <Section title="Completed & Deleted" tone="text-purple-600 dark:text-purple-400">
-          <div className="space-y-2">
-            {completedItems.map(item => (
-              <div key={item.id} className="p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium line-through opacity-60">{item.title}</span>
-                      {item.completed && (
-                        <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
-                          Completed
-                        </span>
-                      )}
-                      {item.deleted && (
-                        <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full">
-                          Deleted
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {item.completedAt && `Completed: ${new Date(item.completedAt).toLocaleDateString()}`}
-                      {item.deletedAt && `Deleted: ${new Date(item.deletedAt).toLocaleDateString()}`}
-                    </div>
-                  </div>
-                  <Button size="sm" onClick={() => restoreItem(item)}>
-                    Restore
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
-
       {/* Add Goal Modal */}
-      <Modal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        title="Add New Goal"
-        size="lg"
-      >
-        <div className="space-y-4">
-          {/* Icon Selection */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Icon</label>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                {form.icon === 'Target' ? (
-                  <Target size={24} className="text-purple-600 dark:text-purple-400" />
-                ) : (
-                  <div className="text-purple-600 dark:text-purple-400 text-lg">?</div>
-                )}
-              </div>
-              <Button onClick={() => setShowIconPicker(true)} variant="outline">
-                {form.icon === 'Target' ? 'Change Icon' : 'Choose Icon'}
-              </Button>
-            </div>
-          </div>
-
-          {/* Basic Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {showAddModal && (
+        <Modal onClose={() => setShowAddModal(false)}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">{t('addGoal')}</h2>
+            
             <div>
-              <label className="block text-sm font-medium mb-2">Goal Title</label>
+              <label className="block text-sm font-medium mb-2">{t('goalTitle')}</label>
               <Input
                 value={form.title}
                 onChange={e => setForm({ ...form, title: e.target.value })}
-                placeholder="What do you want to achieve?"
+                placeholder={t('goalTitle')}
               />
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Deadline</label>
-              <Input
-                type="date"
-                value={form.deadline}
-                onChange={e => setForm({ ...form, deadline: e.target.value })}
-                placeholder="When do you want to achieve this?"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Unit</label>
-              <Input
-                value={form.unit}
-                onChange={e => setForm({ ...form, unit: e.target.value })}
-                placeholder="What unit measures your progress? (e.g., kg, km, $)"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Target</label>
-              <Input
-                type="number"
-                value={form.target}
-                onChange={e => setForm({ ...form, target: Number(e.target.value) })}
-                placeholder="What's your target number?"
-              />
-            </div>
-          </div>
 
-          {/* Priority */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Priority</label>
-            <select
-              value={form.priority}
-              onChange={e => setForm({ ...form, priority: e.target.value })}
-              className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
-            >
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Category</label>
-            <select
-              value={form.category}
-              onChange={e => setForm({ ...form, category: e.target.value })}
-              className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
-            >
-              <option value="Personal">Personal</option>
-              <option value="Work">Work</option>
-              <option value="Health">Health</option>
-              <option value="Education">Education</option>
-              <option value="Finance">Finance</option>
-              <option value="Hobbies">Hobbies</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          {/* Tags */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Tags</label>
-            <TagInput
-              tags={form.tags}
-              onChange={tags => setForm({ ...form, tags })}
-              placeholder="Add tags to organize your goals..."
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Description</label>
-            <textarea
-              value={form.description}
-              onChange={e => setForm({ ...form, description: e.target.value })}
-              placeholder="Add more details about your goal..."
-              rows={3}
-              className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800 resize-none"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
-            <Button variant="outline" onClick={() => setShowAddModal(false)} className="flex-1">
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={addGoal} className="flex-1" disabled={!form.title.trim()}>
-              Create Goal
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Goal Detail Modal */}
-      <Modal
-        isOpen={showDetailModal}
-        onClose={() => setShowDetailModal(false)}
-        title={selectedGoal?.title || 'Goal Details'}
-        size="lg"
-      >
-        {selectedGoal && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Title</label>
+                <label className="block text-sm font-medium mb-2">{t('deadline')}</label>
                 <Input
-                  value={selectedGoal.title}
-                  onChange={e => updateGoal(selectedGoal.id, { title: e.target.value })}
+                  type="date"
+                  value={form.deadline}
+                  onChange={e => setForm({ ...form, deadline: e.target.value })}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Deadline</label>
+                <label className="block text-sm font-medium mb-2">{t('unit')}</label>
+                <Input
+                  value={form.unit}
+                  onChange={e => setForm({ ...form, unit: e.target.value })}
+                  placeholder={t('unit')}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">{t('target')}</label>
+                <Input
+                  type="number"
+                  value={form.target}
+                  onChange={e => setForm({ ...form, target: Number(e.target.value) })}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">{t('priority')}</label>
+                <select
+                  value={form.priority}
+                  onChange={e => setForm({ ...form, priority: e.target.value })}
+                  className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+                >
+                  <option value="Low">{t('low')}</option>
+                  <option value="Medium">{t('medium')}</option>
+                  <option value="High">{t('high')}</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">{t('category')}</label>
+              <select
+                value={form.category}
+                onChange={e => setForm({ ...form, category: e.target.value })}
+                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+              >
+                <option value="Personal">{t('personal')}</option>
+                <option value="Work">{t('work')}</option>
+                <option value="Health">{t('health')}</option>
+                <option value="Education">{t('education')}</option>
+                <option value="Finance">{t('finance')}</option>
+                <option value="Hobbies">{t('hobbies')}</option>
+                <option value="Other">{t('other')}</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">{t('tags')}</label>
+              <TagInput
+                tags={form.tags}
+                onChange={tags => setForm({ ...form, tags })}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">{t('description')}</label>
+              <textarea
+                value={form.description}
+                onChange={e => setForm({ ...form, description: e.target.value })}
+                rows={3}
+                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800 resize-none"
+                placeholder={t('description')}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button variant="outline" onClick={() => setShowAddModal(false)} className="flex-1">
+                {t('cancel')}
+              </Button>
+              <Button variant="primary" onClick={addGoal} className="flex-1">
+                {t('createGoal')}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedGoal && (
+        <Modal onClose={() => setShowDetailModal(false)}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">{t('edit')}</h2>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">{t('goalTitle')}</label>
+              <Input
+                value={selectedGoal.title}
+                onChange={e => updateGoal(selectedGoal.id, { title: e.target.value })}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">{t('deadline')}</label>
                 <Input
                   type="date"
                   value={selectedGoal.deadline}
@@ -811,7 +737,7 @@ export default function Goals() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Unit</label>
+                <label className="block text-sm font-medium mb-2">{t('unit')}</label>
                 <Input
                   value={selectedGoal.unit}
                   onChange={e => updateGoal(selectedGoal.id, { unit: e.target.value })}
@@ -819,7 +745,7 @@ export default function Goals() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Target</label>
+                <label className="block text-sm font-medium mb-2">{t('target')}</label>
                 <Input
                   type="number"
                   value={selectedGoal.target}
@@ -829,7 +755,7 @@ export default function Goals() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Current Progress</label>
+              <label className="block text-sm font-medium mb-2">{t('currentProgress')}</label>
               <Input
                 type="number"
                 value={selectedGoal.current || 0}
@@ -838,37 +764,37 @@ export default function Goals() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Priority</label>
+              <label className="block text-sm font-medium mb-2">{t('priority')}</label>
               <select
                 value={selectedGoal.priority}
                 onChange={e => updateGoal(selectedGoal.id, { priority: e.target.value })}
                 className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
               >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
+                <option value="Low">{t('low')}</option>
+                <option value="Medium">{t('medium')}</option>
+                <option value="High">{t('high')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Category</label>
+              <label className="block text-sm font-medium mb-2">{t('category')}</label>
               <select
                 value={selectedGoal.category}
                 onChange={e => updateGoal(selectedGoal.id, { category: e.target.value })}
                 className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
               >
-                <option value="Personal">Personal</option>
-                <option value="Work">Work</option>
-                <option value="Health">Health</option>
-                <option value="Education">Education</option>
-                <option value="Finance">Finance</option>
-                <option value="Hobbies">Hobbies</option>
-                <option value="Other">Other</option>
+                <option value="Personal">{t('personal')}</option>
+                <option value="Work">{t('work')}</option>
+                <option value="Health">{t('health')}</option>
+                <option value="Education">{t('education')}</option>
+                <option value="Finance">{t('finance')}</option>
+                <option value="Hobbies">{t('hobbies')}</option>
+                <option value="Other">{t('other')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Tags</label>
+              <label className="block text-sm font-medium mb-2">{t('tags')}</label>
               <TagInput
                 tags={selectedGoal.tags || []}
                 onChange={tags => updateGoal(selectedGoal.id, { tags })}
@@ -876,7 +802,7 @@ export default function Goals() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
+              <label className="block text-sm font-medium mb-2">{t('description')}</label>
               <textarea
                 value={selectedGoal.description || ''}
                 onChange={e => updateGoal(selectedGoal.id, { description: e.target.value })}
@@ -887,22 +813,21 @@ export default function Goals() {
 
             <div className="flex gap-3 pt-4">
               <Button variant="outline" onClick={() => setShowDetailModal(false)} className="flex-1">
-                Close
+                {t('close')}
               </Button>
               <Button variant="primary" onClick={() => setShowDetailModal(false)} className="flex-1">
-                Save Changes
+                {t('saveChanges')}
               </Button>
             </div>
           </div>
-        )}
-      </Modal>
+        </Modal>
+      )}
 
       {/* Icon Picker Modal */}
       {showIconPicker && (
         <IconPicker
           selectedIcon={form.icon}
           onSelect={(icon) => {
-        
             setForm({ ...form, icon })
             setShowIconPicker(false)
           }}
