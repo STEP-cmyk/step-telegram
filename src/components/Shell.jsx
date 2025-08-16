@@ -124,7 +124,7 @@ export default function Shell({children}){
 
 
   return (
-    <div className="app-container min-h-dvh bg-gradient-to-br from-blue-50 via-white to-red-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-orange-900/20 text-zinc-900 dark:text-zinc-50">
+    <div className="app-container min-h-[200dvh] bg-gradient-to-br from-blue-50 via-white to-red-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-orange-900/20 text-zinc-900 dark:text-zinc-50">
       <header className="header bg-white/95 dark:bg-zinc-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-zinc-700">
         <div className="header-inner container">
           <div className="flex items-center gap-3">
@@ -132,7 +132,7 @@ export default function Shell({children}){
             <div className="flex items-center gap-2">
               <span className="font-bold tracking-tight text-lg">STEP</span>
               <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full font-medium">
-                v0.7.0
+                STEP 1 beta 1
               </span>
             </div>
           </div>
@@ -143,9 +143,9 @@ export default function Shell({children}){
                 {t('motivationOn')}
               </Badge>
             )}
-            <Link to="/settings" className="btn btn-primary">
-              <Settings size={16} className="mr-1"/>
-              {t('settings')}
+            <Link to="/settings" className="btn btn-primary whitespace-nowrap px-2 py-1.5 text-xs font-medium">
+              <Settings size={14} className="mr-1"/>
+              <span className="truncate max-w-[60px]">{t('settings')}</span>
             </Link>
           </div>
         </div>

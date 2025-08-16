@@ -92,9 +92,9 @@ export default function MotivationQuote() {
             <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400">
               <Quote size={20} />
             </div>
-            <h2 className="text-lg font-semibold text-black dark:text-blue-50">
-              {t('motivationOfTheDay')}
-            </h2>
+                                    <h2 className="text-base font-semibold text-black dark:text-blue-50 whitespace-nowrap truncate max-w-[200px] sm:max-w-none">
+                          {t('motivationOfTheDay')}
+                        </h2>
           </div>
           <button
             onClick={handleRefresh}
