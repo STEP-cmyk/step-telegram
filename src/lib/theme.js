@@ -1,5 +1,26 @@
 // Theme definitions with WCAG 2.1 AA compliant contrast ratios
 export const THEMES = {
+  light: {
+    id: 'light',
+    name: 'Light',
+    description: 'Clean, minimal, and highly readable',
+    category: 'Basic',
+    colors: {
+      bg: '#ffffff',
+      bgSecondary: '#f8fafc',
+      bgTertiary: '#f1f5f9',
+      text: '#0f172a',
+      textSecondary: '#334155',
+      textTertiary: '#64748b',
+      border: '#e2e8f0',
+      borderSecondary: '#cbd5e1',
+      accent: '#2563eb',
+      accentSecondary: '#3b82f6',
+      success: '#059669',
+      warning: '#d97706',
+      error: '#dc2626'
+    }
+  },
   dark: {
     id: 'dark',
     name: 'Dark',
@@ -21,91 +42,7 @@ export const THEMES = {
       error: '#ef4444'
     }
   },
-  dim: {
-    id: 'dim',
-    name: 'Dim',
-    description: 'Softer dark theme, battery-friendly',
-    category: 'Dark',
-    colors: {
-      bg: '#1e293b',
-      bgSecondary: '#334155',
-      bgTertiary: '#475569',
-      text: '#f1f5f9',
-      textSecondary: '#e2e8f0',
-      textTertiary: '#cbd5e1',
-      border: '#475569',
-      borderSecondary: '#64748b',
-      accent: '#60a5fa',
-      accentSecondary: '#93c5fd',
-      success: '#34d399',
-      warning: '#fbbf24',
-      error: '#f87171'
-    }
-  },
-  amoled: {
-    id: 'amoled',
-    name: 'AMOLED',
-    description: 'Pure black for OLED screens',
-    category: 'Dark',
-    colors: {
-      bg: '#000000',
-      bgSecondary: '#0a0a0a',
-      bgTertiary: '#1a1a1a',
-      text: '#ffffff',
-      textSecondary: '#e5e7eb',
-      textTertiary: '#d1d5db',
-      border: '#2a2a2a',
-      borderSecondary: '#404040',
-      accent: '#3b82f6',
-      accentSecondary: '#60a5fa',
-      success: '#10b981',
-      warning: '#f59e0b',
-      error: '#ef4444'
-    }
-  },
 
-  solarizedDark: {
-    id: 'solarizedDark',
-    name: 'Solarized Dark',
-    description: 'Low contrast, easy on the eyes',
-    category: 'Specialized',
-    colors: {
-      bg: '#002b36',
-      bgSecondary: '#073642',
-      bgTertiary: '#073642',
-      text: '#fdf6e3',
-      textSecondary: '#eee8d5',
-      textTertiary: '#93a1a1',
-      border: '#586e75',
-      borderSecondary: '#cb4b16',
-      accent: '#268bd2',
-      accentSecondary: '#6c71c4',
-      success: '#859900',
-      warning: '#cb4b16',
-      error: '#dc322f'
-    }
-  },
-  highContrast: {
-    id: 'highContrast',
-    name: 'High Contrast',
-    description: 'Maximum readability and accessibility',
-    category: 'Accessibility',
-    colors: {
-      bg: '#000000',
-      bgSecondary: '#000000',
-      bgTertiary: '#000000',
-      text: '#ffffff',
-      textSecondary: '#ffffff',
-      textTertiary: '#ffffff',
-      border: '#ffffff',
-      borderSecondary: '#ffffff',
-      accent: '#ffff00',
-      accentSecondary: '#ffff00',
-      success: '#00ff00',
-      warning: '#ffff00',
-      error: '#ff0000'
-    }
-  },
   system: {
     id: 'system',
     name: 'System',
@@ -117,12 +54,12 @@ export const THEMES = {
 
 // Get system theme preference
 export function getSystemTheme() {
-  if (typeof window === 'undefined' || !window.matchMedia) return 'dark'
+  if (typeof window === 'undefined' || !window.matchMedia) return 'light'
   try {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   } catch (error) {
     console.error('Error getting system theme:', error)
-    return 'dark'
+    return 'light'
   }
 }
 
@@ -145,8 +82,8 @@ export function applyTheme(themeId, { withFade = false } = {}) {
     const theme = THEMES[actualTheme] || THEMES.dark
     
     // Remove ALL existing theme classes and attributes
-    html.classList.remove('dark', 'light', 'dim', 'amoled', 'solarized-light', 'solarized-dark', 'high-contrast')
-    body.classList.remove('dark', 'light', 'dim', 'amoled', 'solarized-light', 'solarized-dark', 'high-contrast')
+    html.classList.remove('dark', 'light')
+    body.classList.remove('dark', 'light')
     
     // Remove data-theme attributes
     html.removeAttribute('data-theme')
@@ -186,9 +123,13 @@ export function applyTheme(themeId, { withFade = false } = {}) {
     body.setAttribute('data-theme', themeId)
     
     // Apply Tailwind dark class only for dark themes
-    if (['dark', 'dim', 'amoled', 'solarizedDark', 'highContrast'].includes(actualTheme)) {
+    if (actualTheme === 'dark') {
       html.classList.add('dark')
       body.classList.add('dark')
+    } else {
+      // Ensure light themes don't have dark class
+      html.classList.remove('dark')
+      body.classList.remove('dark')
     }
     
     console.log('Applied theme:', themeId, 'actual theme:', actualTheme)
@@ -197,15 +138,15 @@ export function applyTheme(themeId, { withFade = false } = {}) {
     
   } catch (error) {
     console.error('Error applying theme:', error)
-    // Fallback to dark theme
+    // Fallback to light theme
     const html = document.documentElement
     const body = document.body
-    html.classList.remove('dark', 'light', 'dim', 'amoled', 'solarized-light', 'solarized-dark', 'high-contrast')
-    body.classList.remove('dark', 'light', 'dim', 'amoled', 'solarized-light', 'solarized-dark', 'high-contrast')
-    html.classList.add('dark')
-    body.classList.add('dark')
-    html.setAttribute('data-theme', 'dark')
-    body.setAttribute('data-theme', 'dark')
+    html.classList.remove('dark', 'light')
+    body.classList.remove('dark', 'light')
+    html.classList.remove('dark')
+    body.classList.remove('dark')
+    html.setAttribute('data-theme', 'light')
+    body.setAttribute('data-theme', 'light')
   }
 }
 
@@ -226,7 +167,7 @@ export function watchSystemTheme(callback) {
 // Get current theme
 export function getCurrentTheme() {
   if (typeof window === 'undefined') return 'light'
-  return document.documentElement.getAttribute('data-theme') || 'dark'
+  return document.documentElement.getAttribute('data-theme') || 'light'
 }
 
 // Initialize theme on app start

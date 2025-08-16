@@ -10,23 +10,42 @@ import SwipeableItem from '../components/ui/SwipeableItem'
 import { useApp } from '../store/app.jsx'
 import { uid } from '../lib/utils'
 import { useTranslation } from '../lib/i18n'
-import { Plus, Target, Calendar, Tag, Star } from 'lucide-react'
+import { mountConfetti } from '../lib/confetti'
+import { Plus, Target, Calendar, Tag, Star, Zap, Check, X } from 'lucide-react'
 
 export default function Goals() {
   const { data, setData, ready, error } = useApp()
   const { t } = useTranslation()
+  
+  // Category to default icon mapping
+  const getDefaultIconForCategory = (category) => {
+    const iconMap = {
+      'Personal': '🎯',
+      'Work': '💼',
+      'Health': '🏃‍♂️',
+      'Education': '📚',
+      'Finance': '💰',
+      'Hobbies': '🎨',
+      'Other': '✨'
+    }
+    return iconMap[category] || '🎯'
+  }
+  
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedGoal, setSelectedGoal] = useState(null)
   const [showIconPicker, setShowIconPicker] = useState(false)
   const [toast, setToast] = useState(null)
+  const [showQuickGoal, setShowQuickGoal] = useState(false)
+  const [quickGoalTitle, setQuickGoalTitle] = useState('')
+  const [quickGoalError, setQuickGoalError] = useState('')
   const [form, setForm] = useState({
     title: '',
     deadline: '',
     unit: '',
     target: 10,
     current: 0,
-    icon: 'Target',
+    icon: '🎯', // Default icon
     tags: [],
     priority: 'Medium',
     description: '',
@@ -149,6 +168,89 @@ export default function Goals() {
     }
   }
 
+  const createQuickGoal = () => {
+    try {
+      const title = quickGoalTitle.trim()
+      if (!title) {
+        setQuickGoalError(t('quickGoalEmptyError'))
+        return
+      }
+
+      // Get user's last used category or default to 'Uncategorized'
+      const lastCategory = goals.length > 0 ? goals[goals.length - 1].category : 'Uncategorized'
+      const category = lastCategory || 'Uncategorized'
+
+      const newQuickGoal = {
+        id: uid(),
+        title,
+        deadline: '',
+        unit: '',
+        target: 10,
+        current: 0,
+        icon: getDefaultIconForCategory(category),
+        tags: [],
+        priority: 'Medium',
+        description: '',
+        attachments: [],
+        category,
+        createdAt: new Date().toISOString(),
+        completed: false,
+        deleted: false
+      }
+
+      setData(d => ({ 
+        ...d, 
+        goals: [newQuickGoal, ...(d.goals || [])] // Add to top of list
+      }))
+
+      // Reset quick goal form
+      setQuickGoalTitle('')
+      setQuickGoalError('')
+      setShowQuickGoal(false)
+
+      // Show success toast with Edit and Undo actions
+      setToast({
+        type: 'success',
+        message: t('quickGoalCreated'),
+        goal: newQuickGoal,
+        onEdit: () => {
+          setSelectedGoal(newQuickGoal)
+          setShowDetailModal(true)
+          setToast(null)
+        },
+        onUndo: () => {
+          setData(d => ({
+            ...d,
+            goals: (d.goals || []).filter(g => g.id !== newQuickGoal.id)
+          }))
+          setToast(null)
+        }
+      })
+
+      // Auto-hide toast after 5 seconds
+      setTimeout(() => setToast(null), 5000)
+    } catch (error) {
+      console.error('Error creating quick goal:', error)
+      setQuickGoalError(t('addGoalFailed'))
+    }
+  }
+
+  const cancelQuickGoal = () => {
+    setQuickGoalTitle('')
+    setQuickGoalError('')
+    setShowQuickGoal(false)
+  }
+
+  const handleQuickGoalKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      createQuickGoal()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      cancelQuickGoal()
+    }
+  }
+
   const updateGoal = (id, patch) => {
     try {
       setData(d => {
@@ -239,6 +341,11 @@ export default function Goals() {
           completedItems: [...(d.completedItems || []), normalizedGoal]
         }))
         
+        // Show confetti animation
+        const confetti = mountConfetti()
+        confetti.fire()
+        setTimeout(() => confetti.destroy(), 2000)
+        
         // Show completion toast
         setToast({
           type: 'success',
@@ -314,6 +421,26 @@ export default function Goals() {
     }
   }
 
+  const deleteForever = (item) => {
+    try {
+      setData(d => ({
+        ...d,
+        completedItems: (d.completedItems || []).filter(i => i.id !== item.id)
+      }))
+      
+      // Show success toast
+      setToast({
+        type: 'success',
+        message: `${t('goalDeletedForever')}: ${item.title}`,
+      })
+      
+      // Auto-hide toast after 3 seconds
+      setTimeout(() => setToast(null), 3000)
+    } catch (error) {
+      console.error('Error deleting goal forever:', error)
+    }
+  }
+
   const openDetailModal = (goal) => {
     setSelectedGoal(goal)
     setShowDetailModal(true)
@@ -341,21 +468,88 @@ export default function Goals() {
     <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {t('goals')}
-        </h1>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+            <Target size={24} className="text-blue-600 dark:text-blue-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {t('goals')}
+          </h1>
+        </div>
         <p className="text-gray-600 dark:text-gray-400 mb-6">
           {t('goalsDescription')}
         </p>
-        <Button 
-          variant="primary" 
-          onClick={() => setShowAddModal(true)}
-          className="px-8 py-4 text-lg"
-        >
-          <Plus size={20} className="mr-2" />
-          {t('addGoal')}
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button 
+            variant="primary" 
+            onClick={() => setShowAddModal(true)}
+            className="px-6 py-3 text-base"
+          >
+            <Plus size={18} className="mr-2" />
+            {t('addGoal')}
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={() => setShowQuickGoal(true)}
+            className="px-6 py-3 text-base"
+          >
+            <Zap size={18} className="mr-2" />
+            {t('quickGoal')}
+          </Button>
+        </div>
       </div>
+
+      {/* Quick Goal Input */}
+      {showQuickGoal && (
+        <div className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                  <Zap size={20} className="text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+              <input
+                type="text"
+                value={quickGoalTitle}
+                onChange={(e) => {
+                  setQuickGoalTitle(e.target.value)
+                  if (quickGoalError) setQuickGoalError('')
+                }}
+                onKeyDown={handleQuickGoalKeyDown}
+                placeholder={t('quickGoalPlaceholder')}
+                className="flex-1 p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autoFocus
+                maxLength={200}
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={createQuickGoal}
+                  className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                  title={t('createGoal')}
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  onClick={cancelQuickGoal}
+                  className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-400 transition-colors"
+                  title={t('cancel')}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+            {quickGoalError && (
+              <div className="text-sm text-red-600 dark:text-red-400 ml-13">
+                {quickGoalError}
+              </div>
+            )}
+            <div className="text-xs text-gray-500 dark:text-gray-400 ml-13">
+              Press Enter to create • Press Esc to cancel
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Heavy Goals */}
       {heavyGoals.length > 0 && (
@@ -381,8 +575,8 @@ export default function Goals() {
                 >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                      <Target size={20} className="text-red-600 dark:text-red-400" />
+                    <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-lg">
+                      {goal.icon || getDefaultIconForCategory(goal.category)}
                     </div>
                   </div>
                   
@@ -512,8 +706,8 @@ export default function Goals() {
                 >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                      <Target size={20} className="text-orange-600 dark:text-orange-400" />
+                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-lg">
+                      {goal.icon || getDefaultIconForCategory(goal.category)}
                     </div>
                   </div>
                   
@@ -608,8 +802,8 @@ export default function Goals() {
                 >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                      <Target size={20} className="text-red-600 dark:text-red-400" />
+                    <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-lg">
+                      {goal.icon || getDefaultIconForCategory(goal.category)}
                     </div>
                   </div>
                   
@@ -704,8 +898,8 @@ export default function Goals() {
                 >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <Target size={20} className="text-blue-600 dark:text-blue-400" />
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-lg">
+                      {goal.icon || getDefaultIconForCategory(goal.category)}
                     </div>
                   </div>
                   
@@ -888,8 +1082,8 @@ export default function Goals() {
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                      <Target size={20} className="text-gray-600 dark:text-gray-400" />
+                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-lg">
+                      {item.icon || getDefaultIconForCategory(item.category)}
                     </div>
                   </div>
                   
@@ -923,14 +1117,23 @@ export default function Goals() {
                   </div>
                 </div>
                 
-                <div className="flex gap-2 mt-4">
-                  <Button 
-                    size="sm"
-                    className="flex-1"
+                <div className="flex gap-1 mt-3">
+                  <button 
                     onClick={() => restoreItem(item)}
+                    className="flex-1 px-2 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                   >
                     {t('restore')}
-                  </Button>
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm(t('deleteForeverConfirm'))) {
+                        deleteForever(item)
+                      }
+                    }}
+                    className="flex-1 px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded transition-colors"
+                  >
+                    {t('deleteForever')}
+                  </button>
                 </div>
               </div>
             ))}
@@ -938,13 +1141,22 @@ export default function Goals() {
         </div>
       )}
 
-      {/* Empty State */}
-      {goals.length === 0 && (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          <Target size={48} className="mx-auto mb-4 opacity-50" />
-          <p>{t('noGoalsYet')}</p>
-        </div>
-      )}
+      {/* Active Goals */}
+      <Section title={t('myGoals')} tone="text-blue-600 dark:text-blue-400">
+        {goals.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <Target size={48} className="mx-auto mb-4 opacity-50" />
+            <p>{t('noGoalsYet')}</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Content is handled by the existing sections above */}
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+              {goals.length} {goals.length === 1 ? 'goal' : 'goals'} in progress
+            </p>
+          </div>
+        )}
+      </Section>
 
       {/* Add Goal Modal */}
       {showAddModal && (
@@ -1005,20 +1217,34 @@ export default function Goals() {
 
             <div>
               <label className="block text-sm font-medium mb-2">{t('category')}</label>
-              <select
-                value={form.category}
-                onChange={e => setForm({ ...form, category: e.target.value })}
-                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
-              >
-                <option value="Personal">{t('personal')}</option>
-                <option value="Work">{t('work')}</option>
-                <option value="Health">{t('health')}</option>
-                <option value="Education">{t('education')}</option>
-                <option value="Finance">{t('finance')}</option>
-                <option value="Hobbies">{t('hobbies')}</option>
-                <option value="Other">{t('other')}</option>
-              </select>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-2xl">
+                  {form.icon || '🎯'}
+                </div>
+                <select
+                  value={form.category}
+                  onChange={e => {
+                    const category = e.target.value
+                    setForm({ 
+                      ...form, 
+                      category,
+                      icon: getDefaultIconForCategory(category) // Auto-set default icon
+                    })
+                  }}
+                  className="flex-1 p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+                >
+                  <option value="Personal">{t('personal')}</option>
+                  <option value="Work">{t('work')}</option>
+                  <option value="Health">{t('health')}</option>
+                  <option value="Education">{t('education')}</option>
+                  <option value="Finance">{t('finance')}</option>
+                  <option value="Hobbies">{t('hobbies')}</option>
+                  <option value="Other">{t('other')}</option>
+                </select>
+              </div>
             </div>
+
+
 
             <div>
               <label className="block text-sm font-medium mb-2">{t('tags')}</label>
@@ -1192,16 +1418,27 @@ export default function Goals() {
                   {toast.message}
                 </p>
                 <div className="flex gap-2 mt-3">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      toast.onUndo()
-                      setToast(null)
-                    }}
-                  >
-                    {t('undo')}
-                  </Button>
+                  {toast.onEdit && (
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={toast.onEdit}
+                    >
+                      {t('edit')}
+                    </Button>
+                  )}
+                  {toast.onUndo && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        toast.onUndo()
+                        setToast(null)
+                      }}
+                    >
+                      {t('undo')}
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"

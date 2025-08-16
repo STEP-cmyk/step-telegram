@@ -44,6 +44,8 @@ const TRANSLATIONS = {
     // Summary
     motivationOfTheDay: 'Motivation of the Day',
     tapToChange: 'Tap to change',
+    fallbackQuote: "The first step doesn't have to be perfect, it has to be taken.",
+    motivationOn: 'Motivation ON',
     goals: 'Goals',
     habits: 'Habits',
     wishes: 'Wishes',
@@ -76,11 +78,21 @@ const TRANSLATIONS = {
     readyToBuy: 'Ready to Buy',
     progress: 'Progress',
     remaining: 'Remaining',
+    bestStreakToday: 'Best Streak',
+    todayProgress: 'Today',
+    avgProgress: 'Avg Progress',
+    mostExpensive: 'Most Expensive',
+    completion: 'Completion',
     
     // Goals
     myGoals: 'My Goals',
     noGoalsYet: 'No goals yet. Create your first goal to get started!',
     addGoal: 'Add Goal',
+    quickGoal: 'Quick Goal',
+    quickGoalPlaceholder: 'Quick goal title…',
+    quickGoalCreated: 'Quick goal created',
+    quickGoalEmptyError: 'Goal title cannot be empty',
+    uncategorized: 'Uncategorized',
     goalsDescription: 'Track your progress and achieve your objectives',
     goalTitle: 'Goal Title',
     goalTitlePlaceholder: 'What do you want to achieve?',
@@ -203,8 +215,12 @@ const TRANSLATIONS = {
     loading: 'Loading...',
     error: 'Error',
     success: 'Success',
+    errorLoadingData: 'There was an error loading your data. Please refresh the page.',
+    refreshPage: 'Refresh Page',
     confirm: 'Confirm',
     delete: 'Delete',
+    deleteForever: 'Delete Forever',
+    deleteForeverConfirm: 'Are you sure you want to permanently delete this item? This action cannot be undone.',
     edit: 'Edit',
     restore: 'Restore',
     completed: 'Completed',
@@ -212,7 +228,11 @@ const TRANSLATIONS = {
     offline: 'Offline',
     undo: 'Undo',
     dismiss: 'Dismiss',
+    user: 'User',
     addGoalFailed: 'Failed to add goal. Please try again.',
+    goalDeletedForever: 'Goal permanently deleted',
+    habitDeletedForever: 'Habit permanently deleted',
+    wishDeletedForever: 'Wish permanently deleted',
     close: 'Close',
     saveChanges: 'Save Changes',
     cancel: 'Cancel',
@@ -237,11 +257,8 @@ const TRANSLATIONS = {
     high: 'High',
     
     // Theme names
+    light: 'Light',
     dark: 'Dark',
-    dim: 'Dim',
-    amoled: 'AMOLED',
-    solarizedDark: 'Solarized Dark',
-    highContrast: 'High Contrast',
     system: 'System',
     
     // Language
@@ -265,6 +282,14 @@ const TRANSLATIONS = {
     sectionHidden: 'Section Hidden',
     sectionHiddenDescription: 'The {section} section is currently hidden. You can enable it in Settings.',
     goToSettings: 'Go to Settings',
+    
+    // Icon translations
+    icon: 'Icon',
+    iconPlaceholder: 'Choose an icon',
+    chooseIcon: 'Choose Icon',
+    
+    // Footer
+    madeInRussia: 'Made in Russia',
   },
   
   ru: {
@@ -308,6 +333,8 @@ const TRANSLATIONS = {
     // Summary
     motivationOfTheDay: 'Мотивация дня',
     tapToChange: 'Нажмите для смены',
+    fallbackQuote: 'Первый шаг не должен быть идеальным, его просто нужно сделать.',
+    motivationOn: 'Мотивация ВКЛ',
     goals: 'Цели',
     habits: 'Привычки',
     wishes: 'Хотелки',
@@ -340,11 +367,21 @@ const TRANSLATIONS = {
     readyToBuy: 'Готово к покупке',
     progress: 'Прогресс',
     remaining: 'Осталось',
+    bestStreakToday: 'Лучшая серия',
+    todayProgress: 'Сегодня',
+    avgProgress: 'Средний прогресс',
+    mostExpensive: 'Самое дорогое',
+    completion: 'Завершение',
     
     // Goals
     myGoals: 'Мои цели',
     noGoalsYet: 'Пока нет целей. Создайте первую цель для начала!',
     addGoal: 'Добавить цель',
+    quickGoal: 'Быстрая цель',
+    quickGoalPlaceholder: 'Название быстрой цели…',
+    quickGoalCreated: 'Быстрая цель создана',
+    quickGoalEmptyError: 'Название цели не может быть пустым',
+    uncategorized: 'Без категории',
     goalsDescription: 'Отслеживайте прогресс и достигайте целей',
     goalTitle: 'Название цели',
     goalTitlePlaceholder: 'Чего вы хотите достичь?',
@@ -467,8 +504,12 @@ const TRANSLATIONS = {
     loading: 'Загрузка...',
     error: 'Ошибка',
     success: 'Успех',
+    errorLoadingData: 'Произошла ошибка при загрузке данных. Пожалуйста, обновите страницу.',
+    refreshPage: 'Обновить страницу',
     confirm: 'Подтвердить',
     delete: 'Удалить',
+    deleteForever: 'Удалить навсегда',
+    deleteForeverConfirm: 'Вы уверены, что хотите навсегда удалить этот элемент? Это действие нельзя отменить.',
     edit: 'Редактировать',
     restore: 'Восстановить',
     completed: 'Завершено',
@@ -476,7 +517,11 @@ const TRANSLATIONS = {
     offline: 'Офлайн',
     undo: 'Отменить',
     dismiss: 'Закрыть',
+    user: 'Пользователь',
     addGoalFailed: 'Не удалось добавить цель. Попробуйте еще раз.',
+    goalDeletedForever: 'Цель удалена навсегда',
+    habitDeletedForever: 'Привычка удалена навсегда',
+    wishDeletedForever: 'Хотелка удалена навсегда',
     close: 'Закрыть',
     saveChanges: 'Сохранить изменения',
     cancel: 'Отмена',
@@ -501,11 +546,8 @@ const TRANSLATIONS = {
     high: 'Высокий',
     
     // Theme names
+    light: 'Светлая',
     dark: 'Тёмная',
-    dim: 'Приглушенная',
-    amoled: 'AMOLED',
-    solarizedDark: 'Solarized Dark',
-    highContrast: 'Высокий контраст',
     system: 'Системная',
     
     // Language
@@ -529,6 +571,14 @@ const TRANSLATIONS = {
     sectionHidden: 'Раздел скрыт',
     sectionHiddenDescription: 'Раздел {section} в данный момент скрыт. Вы можете включить его в Настройках.',
     goToSettings: 'Перейти в настройки',
+    
+    // Icon translations
+    icon: 'Иконка',
+    iconPlaceholder: 'Выберите иконку',
+    chooseIcon: 'Выбрать иконку',
+    
+    // Footer
+    madeInRussia: 'Сделано в России',
   }
 }
 

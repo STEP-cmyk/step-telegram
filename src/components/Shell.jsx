@@ -26,7 +26,7 @@ export default function Shell({children}){
   // Initialize theme on app start
   React.useEffect(() => {
     if (ready) {
-      const savedTheme = data?.settings?.theme || 'dark'
+      const savedTheme = data?.settings?.theme || 'light'
       console.log('Initializing theme with:', savedTheme)
       initializeTheme(savedTheme)
     }
@@ -54,7 +54,7 @@ export default function Shell({children}){
             console.log('TG setTheme called with:', theme)
             applyTheme(theme, opts)
           },
-          getNickname: () => data?.settings?.nickname || 'User',
+          getNickname: () => data?.settings?.nickname || t('user'),
           setNickname: (nickname) => setData(d => ({ ...d, settings:{ ...d.settings, nickname } })),
         })
       } catch (error) {
@@ -96,13 +96,13 @@ export default function Shell({children}){
             {t('error')}
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-            There was an error loading your data. Please refresh the page.
+            {t('errorLoadingData')}
           </p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
           >
-            Refresh Page
+            {t('refreshPage')}
           </button>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function Shell({children}){
             <div className="flex items-center gap-2">
               <span className="font-bold tracking-tight text-lg">STEP</span>
               <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full font-medium">
-                v0.6.0
+                v0.7.0
               </span>
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function Shell({children}){
             {data?.settings?.tipsOnHome && (
               <Badge>
                 <Zap size={14} className="mr-1"/>
-                Motivation ON
+                {t('motivationOn')}
               </Badge>
             )}
             <Link to="/settings" className="btn btn-primary">

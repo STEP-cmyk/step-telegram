@@ -9,6 +9,7 @@ import SwipeableItem from '../components/ui/SwipeableItem'
 import { useApp } from '../store/app.jsx'
 import { uid, todayISO } from '../lib/utils'
 import { useTranslation } from '../lib/i18n'
+import { mountConfetti } from '../lib/confetti'
 import { Plus, CheckSquare, Calendar, Bell, Target } from 'lucide-react'
 
 // Helper function to calculate streak
@@ -53,10 +54,24 @@ const DURATION_OPTIONS = (t) => [
 export default function Habits() {
   const { data, setData, ready, error } = useApp()
   const { t } = useTranslation()
+  
+  // Category to default icon mapping
+  const getDefaultIconForCategory = (category) => {
+    const iconMap = {
+      'health': '💊',
+      'finance': '💰',
+      'fitness': '💪',
+      'hobby': '🎨',
+      'learning': '📚',
+      'business': '💼'
+    }
+    return iconMap[category] || '✅'
+  }
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedHabit, setSelectedHabit] = useState(null)
   const [showIconPicker, setShowIconPicker] = useState(false)
+  const [toast, setToast] = useState(null)
   const [form, setForm] = useState({
     title: '',
     type: 'binary',
@@ -239,6 +254,11 @@ export default function Habits() {
         habits: habits.filter(h => h.id !== id),
         completedItems: [...(d.completedItems || []), normalizedHabit]
       }))
+      
+      // Show confetti animation
+      const confetti = mountConfetti()
+      confetti.fire()
+      setTimeout(() => confetti.destroy(), 2000)
     }
   }
 
@@ -301,6 +321,26 @@ export default function Habits() {
       completedItems: (d.completedItems || []).filter(i => i.id !== item.id),
       habits: [...(d.habits || []), normalizedItem]
     }))
+  }
+
+  const deleteForever = (item) => {
+    try {
+      setData(d => ({
+        ...d,
+        completedItems: (d.completedItems || []).filter(i => i.id !== item.id)
+      }))
+      
+      // Show success toast
+      setToast({
+        type: 'success',
+        message: `${t('habitDeletedForever')}: ${item.title}`,
+      })
+      
+      // Auto-hide toast after 3 seconds
+      setTimeout(() => setToast(null), 3000)
+    } catch (error) {
+      console.error('Error deleting habit forever:', error)
+    }
   }
 
   const openDetailModal = (habit) => {
@@ -394,9 +434,14 @@ export default function Habits() {
 
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {t('habits')}
-        </h1>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+            <CheckSquare size={24} className="text-green-600 dark:text-green-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {t('habits')}
+          </h1>
+        </div>
         <p className="text-gray-600 dark:text-gray-400 mb-6">
           {t('habitsDescription')}
         </p>
@@ -539,9 +584,24 @@ export default function Habits() {
                       {item.deletedAt && `Deleted: ${new Date(item.deletedAt).toLocaleDateString()}`}
                     </div>
                   </div>
-                  <Button size="sm" onClick={() => restoreItem(item)}>
-                    Restore
-                  </Button>
+                  <div className="flex gap-1 mt-3">
+                    <button 
+                      onClick={() => restoreItem(item)}
+                      className="flex-1 px-2 py-1 text-xs font-medium text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                    >
+                      {t('restore')}
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (window.confirm(t('deleteForeverConfirm'))) {
+                          deleteForever(item)
+                        }
+                      }}
+                      className="flex-1 px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded transition-colors"
+                    >
+                      {t('deleteForever')}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -557,22 +617,7 @@ export default function Habits() {
         size="lg"
       >
         <div className="space-y-4">
-          {/* Icon Selection */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Icon</label>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                {form.icon === 'CheckSquare' ? (
-                  <CheckSquare size={24} className="text-green-600 dark:text-green-400" />
-                ) : (
-                  <div className="text-green-600 dark:text-green-400 text-lg">?</div>
-                )}
-              </div>
-              <Button onClick={() => setShowIconPicker(true)} variant="outline">
-                {form.icon === 'CheckSquare' ? 'Change Icon' : 'Choose Icon'}
-              </Button>
-            </div>
-          </div>
+
 
           {/* Basic Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -587,17 +632,29 @@ export default function Habits() {
             
             <div>
               <label className="block text-sm font-medium mb-2">Category</label>
-              <select
-                value={form.category}
-                onChange={e => setForm({ ...form, category: e.target.value })}
-                className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
-              >
-                {HABIT_CATEGORIES(t).map(cat => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.icon} {cat.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-lg">
+                  {form.icon || getDefaultIconForCategory(form.category)}
+                </div>
+                <select
+                  value={form.category}
+                  onChange={e => {
+                    const category = e.target.value
+                    setForm({ 
+                      ...form, 
+                      category,
+                      icon: getDefaultIconForCategory(category) // Auto-set default icon
+                    })
+                  }}
+                  className="flex-1 p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+                >
+                  {HABIT_CATEGORIES(t).map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.icon} {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             
             <div>

@@ -11,6 +11,9 @@ export default {
     },
     extend: {
       container: { center: true, padding: { DEFAULT: "12px", md: "16px" } },
+      fontFamily: {
+        'sans': ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Inter', 'Manrope', 'Helvetica', 'Arial', 'sans-serif'],
+      },
     }
   },
   plugins: [],

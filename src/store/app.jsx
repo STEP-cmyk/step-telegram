@@ -5,7 +5,7 @@ const LS_KEY = 'step_020'
 
 export const DEFAULT = {
   settings: {
-    theme: 'dark',              // 'light' | 'dark' | 'dim' | 'amoled' | 'solarizedLight' | 'solarizedDark' | 'highContrast' | 'system'
+    theme: 'light',              // 'light' | 'dark' | 'dim' | 'amoled' | 'solarizedLight' | 'solarizedDark' | 'highContrast' | 'system'
     language: 'ru',             // 'en' | 'ru'
     defaultTab: 'summary',
     tipsOnHome: true,

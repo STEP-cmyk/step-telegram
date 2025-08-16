@@ -73,7 +73,7 @@ export default function Summary() {
     : 0
 
   return (
-    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="space-y-6 safe-padding max-w-7xl mx-auto">
       {/* Motivation Quote */}
       <MotivationQuote />
 
@@ -83,7 +83,7 @@ export default function Summary() {
           <Target size={20} className="text-purple-600 dark:text-purple-400" />
           {t('goals')}
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-1">
           <SummaryTile
             title={t('heavyGoals')}
             value={heavyGoals}
@@ -104,7 +104,7 @@ export default function Summary() {
             title={t('overdueGoals')}
             value={overdueGoals}
             subtitle={t('pastDeadline')}
-            icon={<AlertTriangle size={16} />}
+            icon={<AlertTriangle size={14} />}
             color="red"
             route="/goals"
           />
@@ -125,17 +125,9 @@ export default function Summary() {
           <CheckSquare size={20} className="text-green-600 dark:text-green-400" />
           {t('habits')}
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-1">
           <SummaryTile
-            title={t('today')}
-            value={`${todayCompleted}/${totalHabits}`}
-            subtitle={t('completed')}
-            icon="📅"
-            color="green"
-            route="/habits"
-          />
-          <SummaryTile
-            title={t('longestStreak')}
+            title={t('bestStreakToday')}
             value={longestStreak}
             subtitle={t('days')}
             icon="🔥"
@@ -158,6 +150,14 @@ export default function Summary() {
             color="purple"
             route="/habits"
           />
+          <SummaryTile
+            title={t('todayProgress')}
+            value={`${todayCompleted}/${totalHabits}`}
+            subtitle={t('completed')}
+            icon="📊"
+            color="blue"
+            route="/habits"
+          />
         </div>
       </div>
 
@@ -167,7 +167,7 @@ export default function Summary() {
           <Heart size={20} className="text-pink-600 dark:text-pink-400" />
           {t('wishes')}
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-1">
           <SummaryTile
             title={t('inProgress')}
             value={inProgress}
@@ -185,15 +185,15 @@ export default function Summary() {
             route="/wishes"
           />
           <SummaryTile
-            title={t('averageCompletion')}
+            title={t('avgProgress')}
             value={`${averageCompletion}%`}
-            subtitle={t('progress')}
-            icon={<TrendingUp size={16} />}
+            subtitle={t('completion')}
+            icon={<TrendingUp size={14} />}
             color="purple"
             route="/wishes"
           />
           <SummaryTile
-            title={t('largestWish')}
+            title={t('mostExpensive')}
             value={largestWish > 0 ? formatCurrency(largestWish, data) : formatCurrency(0, data)}
             subtitle={t('remaining')}
             icon="💎"

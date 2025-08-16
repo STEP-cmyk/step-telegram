@@ -9,7 +9,7 @@ import LanguageSelector from '../components/ui/LanguageSelector'
 import UnitsSettings from '../components/ui/UnitsSettings'
 import { useApp } from '../store/app.jsx'
 import { Palette, Eye, EyeOff } from 'lucide-react'
-import { useTranslation } from '../lib/i18n'
+import { useTranslation, getCurrentLanguage } from '../lib/i18n'
 
 export default function Settings(){
   const navigate = useNavigate()
@@ -17,6 +17,21 @@ export default function Settings(){
   const { t } = useTranslation()
   const s = data.settings
   const setSettings = (patch) => setData(d => ({ ...d, settings:{ ...d.settings, ...patch } }))
+
+  // Expand Telegram WebApp viewport to ensure footer is visible
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+      try {
+        window.Telegram.WebApp.expand()
+        console.log('Telegram WebApp viewport expanded for Settings footer visibility')
+      } catch (error) {
+        console.warn('Could not expand Telegram WebApp viewport:', error)
+      }
+    }
+    
+    // Debug: Log footer visibility
+    console.log('Settings page mounted - footer should be visible at bottom')
+  }, [])
 
   // Get current theme display name
   const getCurrentThemeName = () => {
@@ -31,8 +46,10 @@ export default function Settings(){
     return t('dark')
   }
 
-  return (<div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
-    <Section title={t('profile')} tone="text-blue-600 dark:text-blue-400">
+  return (
+    <div className="settings-scroll-container">
+      <div className="settings-scroll-content px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+        <Section title={t('profile')} tone="text-blue-600 dark:text-blue-400">
       <div className="grid md:grid-cols-2 gap-4">
                   <div>
             <label className="block text-sm font-medium mb-2">{t('nickname')}</label>
@@ -226,5 +243,29 @@ export default function Settings(){
         </div>
       </div>
     </Section>
-  </div>)
+
+    {/* Made in Russia footer - Always visible in both themes */}
+    <div className="settings-footer relative z-10 mt-8 pt-6 border-t border-gray-300 dark:border-gray-600 min-h-[2rem] mb-8">
+      <div className="flex items-center justify-between text-xs font-medium">
+        <span className="text-slate-800 dark:text-slate-200">{t('madeInRussia') || (getCurrentLanguage() === 'ru' ? 'Сделано в России' : 'Made in Russia')}</span>
+        <svg 
+          width="24" 
+          height="16" 
+          viewBox="0 0 24 16" 
+          className="flex-shrink-0"
+          aria-label="Russia flag"
+          role="img"
+        >
+          <rect width="24" height="16" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="0.75"/>
+          <rect x="0" y="0" width="24" height="5.33" fill="#ffffff"/>
+          <rect x="0" y="5.33" width="24" height="5.34" fill="#0052cc"/>
+          <rect x="0" y="10.67" width="24" height="5.33" fill="#d52b1e"/>
+        </svg>
+      </div>
+    </div>
+      </div>
+      {/* Bottom spacer for safe areas and sticky elements */}
+      <div className="h-6 md:h-8" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}></div>
+    </div>
+  )
 }
