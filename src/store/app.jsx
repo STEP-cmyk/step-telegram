@@ -49,14 +49,69 @@ export function load(){
   try{ 
     const stored = safeGet(LS_KEY)
     if (stored) {
+      // Normalize goals to ensure they have all required properties
+      const normalizedGoals = (stored.goals || []).map(goal => ({
+        tags: [],
+        unit: '',
+        current: 0,
+        target: 10,
+        priority: 'Medium',
+        description: '',
+        attachments: [],
+        category: 'Personal',
+        completed: false,
+        deleted: false,
+        ...goal
+      }))
+      
+      // Normalize habits to ensure they have all required properties
+      const normalizedHabits = (stored.habits || []).map(habit => ({
+        tags: [],
+        type: 'binary',
+        quantTarget: 8,
+        category: 'health',
+        activeDays: 'daily',
+        customDays: [],
+        duration: 'indefinite',
+        reminders: [],
+        description: '',
+        streak: 0,
+        lastCompleted: null,
+        history: [],
+        completed: false,
+        deleted: false,
+        ...habit
+      }))
+      
+      // Normalize completed items as well
+      const normalizedCompletedItems = (stored.completedItems || []).map(item => ({
+        tags: [],
+        unit: '',
+        target: 10,
+        priority: 'Medium',
+        description: '',
+        attachments: [],
+        category: 'Personal',
+        type: 'binary',
+        quantTarget: 8,
+        activeDays: 'daily',
+        customDays: [],
+        duration: 'indefinite',
+        reminders: [],
+        streak: 0,
+        lastCompleted: null,
+        history: [],
+        ...item
+      }))
+      
       // Ensure all required arrays exist
       return {
         ...DEFAULT,
         ...stored,
-        goals: stored.goals || [],
-        habits: stored.habits || [],
+        goals: normalizedGoals,
+        habits: normalizedHabits,
         wishes: stored.wishes || [],
-        completedItems: stored.completedItems || [],
+        completedItems: normalizedCompletedItems,
         journals: stored.journals || DEFAULT.journals,
         competitions: stored.competitions || DEFAULT.competitions,
         tips: stored.tips || DEFAULT.tips

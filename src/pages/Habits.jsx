@@ -26,28 +26,28 @@ function calcStreak(history) {
   return streak
 }
 
-const HABIT_CATEGORIES = [
-  { id: 'health', name: 'Health', icon: '💊', examples: ['Drink water', 'Take vitamins', 'Exercise'] },
-  { id: 'finance', name: 'Finance', icon: '💰', examples: ['Save money', 'Track expenses', 'Invest'] },
-  { id: 'fitness', name: 'Fitness', icon: '💪', examples: ['Workout', 'Run', 'Stretch'] },
-  { id: 'hobby', name: 'Hobby', icon: '🎨', examples: ['Read books', 'Play music', 'Draw'] },
-  { id: 'learning', name: 'Learning', icon: '📚', examples: ['Study language', 'Learn coding', 'Read'] },
-  { id: 'business', name: 'Business', icon: '💼', examples: ['Network', 'Learn skills', 'Plan'] }
+const HABIT_CATEGORIES = (t) => [
+  { id: 'health', name: t('health'), icon: '💊', examples: ['Drink water', 'Take vitamins', 'Exercise'] },
+  { id: 'finance', name: t('finance'), icon: '💰', examples: ['Save money', 'Track expenses', 'Invest'] },
+  { id: 'fitness', name: t('fitness'), icon: '💪', examples: ['Workout', 'Run', 'Stretch'] },
+  { id: 'hobby', name: t('hobby'), icon: '🎨', examples: ['Read books', 'Play music', 'Draw'] },
+  { id: 'learning', name: t('learning'), icon: '📚', examples: ['Study language', 'Learn coding', 'Read'] },
+  { id: 'business', name: t('business'), icon: '💼', examples: ['Network', 'Learn skills', 'Plan'] }
 ]
 
-const ACTIVE_DAYS_OPTIONS = [
-  { id: 'daily', name: 'Every day', description: '7 days a week' },
-  { id: 'weekdays', name: 'Weekdays only', description: 'Monday to Friday' },
-  { id: 'weekends', name: 'Weekends only', description: 'Saturday and Sunday' },
-  { id: 'custom', name: 'Custom days', description: 'Choose specific days' }
+const ACTIVE_DAYS_OPTIONS = (t) => [
+  { id: 'daily', name: t('everyDay'), description: t('sevenDaysWeek') },
+  { id: 'weekdays', name: t('weekdaysOnly'), description: t('mondayToFriday') },
+  { id: 'weekends', name: t('weekendsOnly'), description: t('saturdayAndSunday') },
+  { id: 'custom', name: t('customDays'), description: t('chooseSpecificDays') }
 ]
 
-const DURATION_OPTIONS = [
-  { id: 'week', name: '1 Week', description: '7 days' },
-  { id: 'month', name: '1 Month', description: '30 days' },
-  { id: 'quarter', name: '3 Months', description: '90 days' },
-  { id: 'year', name: '1 Year', description: '365 days' },
-  { id: 'indefinite', name: 'Indefinite', description: 'No end date' }
+const DURATION_OPTIONS = (t) => [
+  { id: 'week', name: t('oneWeek'), description: t('sevenDays') },
+  { id: 'month', name: t('oneMonth'), description: t('thirtyDays') },
+  { id: 'quarter', name: t('threeMonths'), description: t('ninetyDays') },
+  { id: 'year', name: t('oneYear'), description: t('threeHundredSixtyFiveDays') },
+  { id: 'indefinite', name: t('indefinite'), description: t('noEndDate') }
 ]
 
 export default function Habits() {
@@ -77,7 +77,7 @@ export default function Habits() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="w-8 h-8 mx-auto mb-4 border-2 border-red-600 border-t-transparent rounded-full"></div>
-          <p className="text-red-600 dark:text-red-400">Error loading data: {error.message}</p>
+          <p className="text-red-600 dark:text-red-400">{t('error')}: {error.message}</p>
         </div>
       </div>
     )
@@ -89,15 +89,45 @@ export default function Habits() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="w-8 h-8 mx-auto mb-4 border-2 border-blue-600 border-t-transparent rounded-full loading-spinner"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
     )
   }
 
-  // Safe data access with fallbacks
-  const habits = data?.habits || []
-  const completedItems = data?.completedItems || []
+  // Safe data access with fallbacks and normalization
+  const habits = (data?.habits || []).map(habit => ({
+    tags: [],
+    type: 'binary',
+    quantTarget: 8,
+    category: 'health',
+    activeDays: 'daily',
+    customDays: [],
+    duration: 'indefinite',
+    reminders: [],
+    description: '',
+    streak: 0,
+    lastCompleted: null,
+    history: [],
+    completed: false,
+    deleted: false,
+    ...habit
+  }))
+  const completedItems = (data?.completedItems || []).map(item => ({
+    tags: [],
+    type: 'binary',
+    quantTarget: 8,
+    category: 'health',
+    activeDays: 'daily',
+    customDays: [],
+    duration: 'indefinite',
+    reminders: [],
+    description: '',
+    streak: 0,
+    lastCompleted: null,
+    history: [],
+    ...item
+  }))
 
 
 
@@ -145,7 +175,24 @@ export default function Habits() {
   const updateHabit = (id, patch) => {
     setData(d => ({ 
       ...d, 
-      habits: (d.habits || []).map(h => h.id === id ? { ...h, ...patch } : h) 
+      habits: (d.habits || []).map(h => h.id === id ? {
+        tags: [],
+        type: 'binary',
+        quantTarget: 8,
+        category: 'health',
+        activeDays: 'daily',
+        customDays: [],
+        duration: 'indefinite',
+        reminders: [],
+        description: '',
+        streak: 0,
+        lastCompleted: null,
+        history: [],
+        completed: false,
+        deleted: false,
+        ...h,
+        ...patch
+      } : h) 
     }))
   }
 
@@ -166,10 +213,31 @@ export default function Habits() {
   const completeHabit = (id) => {
     const habit = habits.find(h => h.id === id)
     if (habit) {
+      // Ensure the completed habit has all required properties
+      const normalizedHabit = {
+        tags: [],
+        type: 'binary',
+        quantTarget: 8,
+        category: 'health',
+        activeDays: 'daily',
+        customDays: [],
+        duration: 'indefinite',
+        reminders: [],
+        description: '',
+        streak: 0,
+        lastCompleted: null,
+        history: [],
+        completed: false,
+        deleted: false,
+        ...habit,
+        completed: true,
+        completedAt: new Date().toISOString()
+      }
+      
       setData(d => ({
         ...d,
         habits: habits.filter(h => h.id !== id),
-        completedItems: [...(d.completedItems || []), { ...habit, completed: true, completedAt: new Date().toISOString() }]
+        completedItems: [...(d.completedItems || []), normalizedHabit]
       }))
     }
   }
@@ -177,19 +245,61 @@ export default function Habits() {
   const deleteHabit = (id) => {
     const habit = habits.find(h => h.id === id)
     if (habit) {
+      // Ensure the deleted habit has all required properties
+      const normalizedHabit = {
+        tags: [],
+        type: 'binary',
+        quantTarget: 8,
+        category: 'health',
+        activeDays: 'daily',
+        customDays: [],
+        duration: 'indefinite',
+        reminders: [],
+        description: '',
+        streak: 0,
+        lastCompleted: null,
+        history: [],
+        completed: false,
+        deleted: false,
+        ...habit,
+        deleted: true,
+        deletedAt: new Date().toISOString()
+      }
+      
       setData(d => ({
         ...d,
         habits: habits.filter(h => h.id !== id),
-        completedItems: [...(d.completedItems || []), { ...habit, deleted: true, deletedAt: new Date().toISOString() }]
+        completedItems: [...(d.completedItems || []), normalizedHabit]
       }))
     }
   }
 
   const restoreItem = (item) => {
+    // Ensure the restored item has all required properties
+    const normalizedItem = {
+      tags: [],
+      type: 'binary',
+      quantTarget: 8,
+      category: 'health',
+      activeDays: 'daily',
+      customDays: [],
+      duration: 'indefinite',
+      reminders: [],
+      description: '',
+      streak: 0,
+      lastCompleted: null,
+      history: [],
+      completed: false,
+      deleted: false,
+      ...item,
+      completedAt: undefined,
+      deletedAt: undefined
+    }
+    
     setData(d => ({
       ...d,
       completedItems: (d.completedItems || []).filter(i => i.id !== item.id),
-      habits: [...(d.habits || []), { ...item, completed: false, deleted: false, completedAt: undefined, deletedAt: undefined }]
+      habits: [...(d.habits || []), normalizedItem]
     }))
   }
 
@@ -222,12 +332,12 @@ export default function Habits() {
   }
 
   const getCategoryIcon = (categoryId) => {
-    const category = HABIT_CATEGORIES.find(c => c.id === categoryId)
+    const category = HABIT_CATEGORIES(t).find(c => c.id === categoryId)
     return category?.icon || '📌'
   }
 
   const getCategoryName = (categoryId) => {
-    const category = HABIT_CATEGORIES.find(c => c.id === categoryId)
+    const category = HABIT_CATEGORIES(t).find(c => c.id === categoryId)
     return category?.name || 'Other'
   }
 
@@ -282,12 +392,18 @@ export default function Habits() {
     <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
 
 
-      {/* Add Habit Button */}
+      {/* Header */}
       <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          {t('habits')}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          {t('habitsDescription')}
+        </p>
         <Button 
           variant="primary" 
           onClick={() => setShowAddModal(true)}
-          className="px-8 py-4 text-lg float"
+          className="px-8 py-4 text-lg"
         >
           <Plus size={20} className="mr-2" />
           {t('addHabit')}
@@ -310,16 +426,19 @@ export default function Habits() {
                 </h3>
                 <div className="space-y-3">
                   {categoryHabits.map((habit, index) => (
-                    <SwipeableItem
+                                        <SwipeableItem
                       key={habit.id}
                       onSwipeRight={() => completeHabit(habit.id)}
-                      onSwipeLeft={() => openDetailModal(habit)}
+                      onSwipeLeft={() => deleteHabit(habit.id)}
                       onEdit={() => openDetailModal(habit)}
                       onDelete={() => deleteHabit(habit.id)}
                       className={`p-4 stagger-item`}
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      <div className="space-y-3">
+                      <div 
+                        className="space-y-3 cursor-pointer"
+                        onClick={() => openDetailModal(habit)}
+                      >
                         {/* Header */}
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0">
@@ -351,7 +470,10 @@ export default function Habits() {
                           <Button 
                             variant="primary" 
                             size="sm"
-                            onClick={() => markHabit(habit.id, habit.type === 'binary' ? true : (Number(habit.history?.[todayISO()] || 0) + 1))}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markHabit(habit.id, habit.type === 'binary' ? true : (Number(habit.history?.[todayISO()] || 0) + 1));
+                            }}
                           >
                             {habit.type === 'binary' 
                               ? (habit.history?.[todayISO()] === true ? 'Done' : 'Mark Done') 
@@ -367,16 +489,16 @@ export default function Habits() {
                         </div>
 
                         {/* Tags */}
-                        {habit.tags.length > 0 && (
+                        {(habit.tags || []).length > 0 && (
                           <div className="flex flex-wrap gap-1">
-                            {habit.tags.slice(0, 3).map(tag => (
+                            {(habit.tags || []).slice(0, 3).map(tag => (
                               <span key={tag} className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
                                 {tag}
-                              </span>
+                            </span>
                             ))}
-                            {habit.tags.length > 3 && (
+                            {(habit.tags || []).length > 3 && (
                               <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full">
-                                +{habit.tags.length - 3}
+                                +{(habit.tags || []).length - 3}
                               </span>
                             )}
                           </div>
@@ -431,7 +553,7 @@ export default function Habits() {
       <Modal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        title="Add New Habit"
+        title={t('addNewHabit')}
         size="lg"
       >
         <div className="space-y-4">
@@ -470,7 +592,7 @@ export default function Habits() {
                 onChange={e => setForm({ ...form, category: e.target.value })}
                 className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
               >
-                {HABIT_CATEGORIES.map(cat => (
+                {HABIT_CATEGORIES(t).map(cat => (
                   <option key={cat.id} value={cat.id}>
                     {cat.icon} {cat.name}
                   </option>
@@ -479,25 +601,25 @@ export default function Habits() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-2">Type</label>
+              <label className="block text-sm font-medium mb-2">{t('type')}</label>
               <select
                 value={form.type}
                 onChange={e => setForm({ ...form, type: e.target.value })}
                 className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
               >
-                <option value="binary">Binary (Done/Not Done)</option>
-                <option value="quant">Quantitative (Count)</option>
+                <option value="binary">{t('typeBinary')}</option>
+                <option value="quant">{t('typeQuantitative')}</option>
               </select>
             </div>
             
             {form.type === 'quant' && (
               <div>
-                <label className="block text-sm font-medium mb-2">Daily Target</label>
+                <label className="block text-sm font-medium mb-2">{t('dailyTarget')}</label>
                 <Input
                   type="number"
                   value={form.quantTarget}
                   onChange={e => setForm({ ...form, quantTarget: Number(e.target.value) })}
-                  placeholder="How many per day?"
+                  placeholder={t('howManyPerDay')}
                 />
               </div>
             )}
@@ -505,9 +627,9 @@ export default function Habits() {
 
           {/* Active Days */}
           <div>
-            <label className="block text-sm font-medium mb-2">Active Days</label>
+            <label className="block text-sm font-medium mb-2">{t('activeDays')}</label>
             <div className="grid grid-cols-2 gap-2">
-              {ACTIVE_DAYS_OPTIONS.map(option => (
+              {ACTIVE_DAYS_OPTIONS(t).map(option => (
                 <button
                   key={option.id}
                   onClick={() => setForm({ ...form, activeDays: option.id })}
@@ -526,13 +648,13 @@ export default function Habits() {
 
           {/* Duration */}
           <div>
-            <label className="block text-sm font-medium mb-2">Duration</label>
+            <label className="block text-sm font-medium mb-2">{t('duration')}</label>
             <select
               value={form.duration}
               onChange={e => setForm({ ...form, duration: e.target.value })}
               className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
             >
-              {DURATION_OPTIONS.map(option => (
+              {DURATION_OPTIONS(t).map(option => (
                 <option key={option.id} value={option.id}>
                   {option.name} - {option.description}
                 </option>
@@ -542,21 +664,21 @@ export default function Habits() {
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium mb-2">Tags</label>
+            <label className="block text-sm font-medium mb-2">{t('tags')}</label>
             <TagInput
               tags={form.tags}
               onChange={tags => setForm({ ...form, tags })}
-              placeholder="Add tags to organize your habits..."
+              placeholder={t('tagsPlaceholder')}
             />
           </div>
 
           {/* Reminders */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium">Reminders</label>
+              <label className="block text-sm font-medium">{t('reminders')}</label>
               <Button onClick={addReminder} size="sm" variant="outline">
                 <Bell size={14} className="mr-1" />
-                Add Reminder
+                {t('addReminder')}
               </Button>
             </div>
             {form.reminders.length > 0 ? (
@@ -642,7 +764,7 @@ export default function Habits() {
                   onChange={e => updateHabit(selectedHabit.id, { category: e.target.value })}
                   className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
                 >
-                  {HABIT_CATEGORIES.map(cat => (
+                  {HABIT_CATEGORIES(t).map(cat => (
                     <option key={cat.id} value={cat.id}>
                       {cat.icon} {cat.name}
                     </option>
@@ -651,20 +773,20 @@ export default function Habits() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Type</label>
+                <label className="block text-sm font-medium mb-2">{t('type')}</label>
                 <select
                   value={selectedHabit.type}
                   onChange={e => updateHabit(selectedHabit.id, { type: e.target.value })}
                   className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
                 >
-                  <option value="binary">Binary (Done/Not Done)</option>
-                  <option value="quant">Quantitative (Count)</option>
+                  <option value="binary">{t('typeBinary')}</option>
+                  <option value="quant">{t('typeQuantitative')}</option>
                 </select>
               </div>
               
               {selectedHabit.type === 'quant' && (
                 <div>
-                  <label className="block text-sm font-medium mb-2">Daily Target</label>
+                  <label className="block text-sm font-medium mb-2">{t('dailyTarget')}</label>
                   <Input
                     type="number"
                     value={selectedHabit.quantTarget}
@@ -675,13 +797,13 @@ export default function Habits() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Active Days</label>
+              <label className="block text-sm font-medium mb-2">{t('activeDays')}</label>
               <select
                 value={selectedHabit.activeDays}
                 onChange={e => updateHabit(selectedHabit.id, { activeDays: e.target.value })}
                 className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
               >
-                {ACTIVE_DAYS_OPTIONS.map(option => (
+                {ACTIVE_DAYS_OPTIONS(t).map(option => (
                   <option key={option.id} value={option.id}>
                     {option.name} - {option.description}
                   </option>
@@ -690,13 +812,13 @@ export default function Habits() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Duration</label>
+              <label className="block text-sm font-medium mb-2">{t('duration')}</label>
               <select
                 value={selectedHabit.duration}
                 onChange={e => updateHabit(selectedHabit.id, { duration: e.target.value })}
                 className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
               >
-                {DURATION_OPTIONS.map(option => (
+                {DURATION_OPTIONS(t).map(option => (
                   <option key={option.id} value={option.id}>
                     {option.name} - {option.description}
                   </option>
@@ -705,10 +827,11 @@ export default function Habits() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Tags</label>
+              <label className="block text-sm font-medium mb-2">{t('tags')}</label>
               <TagInput
                 tags={selectedHabit.tags || []}
                 onChange={tags => updateHabit(selectedHabit.id, { tags })}
+                placeholder={t('tagsPlaceholder')}
               />
             </div>
 
@@ -724,10 +847,10 @@ export default function Habits() {
 
             <div className="flex gap-3 pt-4">
               <Button variant="outline" onClick={() => setShowDetailModal(false)} className="flex-1">
-                Close
+                {t('close')}
               </Button>
               <Button variant="primary" onClick={() => setShowDetailModal(false)} className="flex-1">
-                Save Changes
+                {t('saveChanges')}
               </Button>
             </div>
           </div>

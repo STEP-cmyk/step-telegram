@@ -39,7 +39,7 @@ export default function Wishes() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="w-8 h-8 mx-auto mb-4 border-2 border-red-600 border-t-transparent rounded-full"></div>
-          <p className="text-red-600 dark:text-red-400">Error loading data: {error.message}</p>
+          <p className="text-red-600 dark:text-red-400">{t('error')}: {error.message}</p>
         </div>
       </div>
     )
@@ -51,7 +51,7 @@ export default function Wishes() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="w-8 h-8 mx-auto mb-4 border-2 border-blue-600 border-t-transparent rounded-full loading-spinner"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
     )
@@ -155,12 +155,18 @@ export default function Wishes() {
     <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
 
 
-      {/* Add Wish Button */}
+      {/* Header */}
       <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          {t('wishes')}
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          {t('wishDescription')}
+        </p>
         <Button 
           variant="primary" 
           onClick={() => setShowAddModal(true)}
-          className="px-8 py-4 text-lg float"
+          className="px-8 py-4 text-lg"
         >
           <Plus size={20} className="mr-2" />
           {t('addWish')}
@@ -197,13 +203,16 @@ export default function Wishes() {
                       <SwipeableItem
                         key={wish.id}
                         onSwipeRight={() => completeWish(wish.id)}
-                        onSwipeLeft={() => openDetailModal(wish)}
+                        onSwipeLeft={() => deleteWish(wish.id)}
                         onEdit={() => openDetailModal(wish)}
                         onDelete={() => deleteWish(wish.id)}
                         className={`p-4 stagger-item`}
                         style={{ animationDelay: `${index * 0.1}s` }}
                       >
-                        <div className="flex items-start gap-3">
+                        <div 
+                          className="flex items-start gap-3 cursor-pointer"
+                          onClick={() => openDetailModal(wish)}
+                        >
                           <div className="flex-shrink-0">
                             <div className="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
                               <Heart size={20} className="text-pink-600 dark:text-pink-400" />
@@ -222,11 +231,11 @@ export default function Wishes() {
                               <div className="flex items-center gap-4">
                                 <span className="flex items-center gap-1">
                                   <Target size={14} />
-                                  Target: {formatCurrency(wish.targetAmount, data)}
+                                  {t('target')}: {formatCurrency(wish.targetAmount, data)}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Tag size={14} />
-                                  Saved: {formatCurrency(wish.savedAmount, data)}
+                                  {t('saved')}: {formatCurrency(wish.savedAmount, data)}
                                 </span>
                                 {wish.deadline && (
                                   <span className="flex items-center gap-1">
@@ -239,7 +248,7 @@ export default function Wishes() {
                             
                             <Progress current={wish.savedAmount || 0} target={wish.targetAmount || 0} />
                             <div className="text-xs text-gray-500 mt-1">
-                              {formatCurrency(wish.savedAmount || 0, data)} / {formatCurrency(wish.targetAmount, data)} saved
+                              {formatCurrency(wish.savedAmount || 0, data)} / {formatCurrency(wish.targetAmount, data)} {t('savedAmount')}
                             </div>
                             
                             {wish.tags && wish.tags.length > 0 && (
@@ -262,13 +271,19 @@ export default function Wishes() {
                             <Button 
                               variant="primary" 
                               size="sm"
-                              onClick={() => updateWish(wish.id, { savedAmount: Math.min((wish.savedAmount || 0) + 1000, wish.targetAmount || Infinity) })}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateWish(wish.id, { savedAmount: Math.min((wish.savedAmount || 0) + 1000, wish.targetAmount || Infinity) });
+                              }}
                             >
                               +1 000
                             </Button>
                             <Button 
                               size="sm"
-                              onClick={() => updateWish(wish.id, { savedAmount: Math.max((wish.savedAmount || 0) - 1000, 0) })}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateWish(wish.id, { savedAmount: Math.max((wish.savedAmount || 0) - 1000, 0) });
+                              }}
                             >
                               -1 000
                             </Button>
@@ -338,7 +353,7 @@ export default function Wishes() {
       <Modal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        title="Add New Wish"
+        title={t('addNewWish')}
         size="lg"
       >
         <div className="space-y-4">
@@ -390,74 +405,74 @@ export default function Wishes() {
                 onChange={e => setForm({ ...form, category: e.target.value })}
                 className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
               >
-                <option value="Personal">Personal</option>
-                <option value="Work">Work</option>
-                <option value="Health">Health</option>
-                <option value="Finance">Finance</option>
-                <option value="Learning">Learning</option>
-                <option value="Travel">Travel</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="Other">Other</option>
+                <option value="Personal">{t('personal')}</option>
+                <option value="Work">{t('work')}</option>
+                <option value="Health">{t('health')}</option>
+                <option value="Finance">{t('finance')}</option>
+                <option value="Learning">{t('learning')}</option>
+                <option value="Travel">{t('travel')}</option>
+                <option value="Entertainment">{t('entertainment')}</option>
+                <option value="Other">{t('other')}</option>
               </select>
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-2">Target Amount</label>
+              <label className="block text-sm font-medium mb-2">{t('targetAmount')}</label>
               <Input
                 type="number"
                 value={form.targetAmount}
                 onChange={e => setForm({ ...form, targetAmount: Number(e.target.value) })}
-                placeholder="How much does it cost?"
+                placeholder={t('targetAmountPlaceholder')}
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-2">Already Saved</label>
+              <label className="block text-sm font-medium mb-2">{t('alreadySaved')}</label>
               <Input
                 type="number"
                 value={form.savedAmount}
                 onChange={e => setForm({ ...form, savedAmount: Number(e.target.value) })}
-                placeholder="How much have you saved?"
+                placeholder={t('savedAmountPlaceholder')}
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-2">Deadline</label>
+              <label className="block text-sm font-medium mb-2">{t('deadline')}</label>
               <Input
                 type="date"
                 value={form.deadline}
                 onChange={e => setForm({ ...form, deadline: e.target.value })}
-                placeholder="When do you want it by?"
+                placeholder={t('deadlinePlaceholder')}
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-2">Link (Optional)</label>
+              <label className="block text-sm font-medium mb-2">{t('linkOptional')}</label>
               <Input
                 value={form.link}
                 onChange={e => setForm({ ...form, link: e.target.value })}
-                placeholder="Product link or reference"
+                placeholder={t('productLinkReference')}
               />
             </div>
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium mb-2">Tags</label>
+            <label className="block text-sm font-medium mb-2">{t('tags')}</label>
             <TagInput
               tags={form.tags}
               onChange={tags => setForm({ ...form, tags })}
-              placeholder="Add tags to organize your wishes..."
+              placeholder={t('tagsPlaceholder')}
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium mb-2">Description</label>
+            <label className="block text-sm font-medium mb-2">{t('description')}</label>
             <textarea
               value={form.description}
               onChange={e => setForm({ ...form, description: e.target.value })}
-              placeholder="Add more details about your wish..."
+              placeholder={t('addMoreDetails')}
               rows={3}
               className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800 resize-none"
             />
@@ -466,10 +481,10 @@ export default function Wishes() {
           {/* Actions */}
           <div className="flex gap-3 pt-4">
             <Button variant="outline" onClick={() => setShowAddModal(false)} className="flex-1">
-              Cancel
+              {t('cancel')}
             </Button>
             <Button variant="primary" onClick={addWish} className="flex-1" disabled={!form.title.trim()}>
-              Add Wish
+              {t('addWish')}
             </Button>
           </div>
         </div>
@@ -479,14 +494,14 @@ export default function Wishes() {
       <Modal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
-        title={selectedWish?.title || 'Wish Details'}
+        title={selectedWish?.title || t('wishDetails')}
         size="lg"
       >
         {selectedWish && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Title</label>
+                <label className="block text-sm font-medium mb-2">{t('wishTitle')}</label>
                 <Input
                   value={selectedWish.title}
                   onChange={e => updateWish(selectedWish.id, { title: e.target.value })}
@@ -494,20 +509,20 @@ export default function Wishes() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Priority</label>
+                <label className="block text-sm font-medium mb-2">{t('priority')}</label>
                 <select
                   value={selectedWish.priority}
                   onChange={e => updateWish(selectedWish.id, { priority: e.target.value })}
                   className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
                 >
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
+                  <option value="Low">{t('low')}</option>
+                  <option value="Medium">{t('medium')}</option>
+                  <option value="High">{t('high')}</option>
                 </select>
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Target Amount</label>
+                <label className="block text-sm font-medium mb-2">{t('targetAmount')}</label>
                 <Input
                   type="number"
                   value={selectedWish.targetAmount}
@@ -516,7 +531,7 @@ export default function Wishes() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Already Saved</label>
+                <label className="block text-sm font-medium mb-2">{t('alreadySaved')}</label>
                 <Input
                   type="number"
                   value={selectedWish.savedAmount}
@@ -525,7 +540,7 @@ export default function Wishes() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Deadline</label>
+                <label className="block text-sm font-medium mb-2">{t('deadline')}</label>
                 <Input
                   type="date"
                   value={selectedWish.deadline}
@@ -534,7 +549,7 @@ export default function Wishes() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">Link</label>
+                <label className="block text-sm font-medium mb-2">{t('link')}</label>
                 <Input
                   value={selectedWish.link}
                   onChange={e => updateWish(selectedWish.id, { link: e.target.value })}
@@ -543,15 +558,16 @@ export default function Wishes() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Tags</label>
+              <label className="block text-sm font-medium mb-2">{t('tags')}</label>
               <TagInput
                 tags={selectedWish.tags || []}
                 onChange={tags => updateWish(selectedWish.id, { tags })}
+                placeholder={t('tagsPlaceholder')}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
+              <label className="block text-sm font-medium mb-2">{t('description')}</label>
               <textarea
                 value={selectedWish.description || ''}
                 onChange={e => updateWish(selectedWish.id, { description: e.target.value })}
@@ -562,10 +578,10 @@ export default function Wishes() {
 
             <div className="flex gap-3 pt-4">
               <Button variant="outline" onClick={() => setShowDetailModal(false)} className="flex-1">
-                Close
+                {t('close')}
               </Button>
               <Button variant="primary" onClick={() => setShowDetailModal(false)} className="flex-1">
-                Save Changes
+                {t('saveChanges')}
               </Button>
             </div>
           </div>

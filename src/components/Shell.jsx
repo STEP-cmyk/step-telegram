@@ -132,7 +132,7 @@ export default function Shell({children}){
             <div className="flex items-center gap-2">
               <span className="font-bold tracking-tight text-lg">STEP</span>
               <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full font-medium">
-                v0.5.0
+                v0.6.0
               </span>
             </div>
           </div>
