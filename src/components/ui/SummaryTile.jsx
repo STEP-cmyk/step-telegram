@@ -122,8 +122,8 @@ export default function SummaryTile({
             )}
             <h3 className={`
               text-xs font-medium leading-tight flex-1 ${config.text}
-              ${shouldWrap ? 'line-clamp-2' : 'truncate'}
-            `}>
+              ${shouldWrap ? 'line-clamp-2 break-words hyphens-none' : 'truncate'}
+            `} style={{ hyphens: 'none', wordBreak: 'normal', overflowWrap: 'break-word' }}>
               {needsTooltip ? title.substring(0, 18) + '...' : title}
             </h3>
           </div>
@@ -145,7 +145,7 @@ export default function SummaryTile({
           {/* Subtitle and delta */}
           <div className="flex items-center justify-between gap-1 min-h-0">
             {subtitle && (
-              <span className={`text-xs opacity-75 leading-tight truncate flex-1 ${config.text}`}>
+              <span className={`text-xs opacity-75 leading-tight line-clamp-1 flex-1 ${config.text}`} style={{ hyphens: 'none', wordBreak: 'normal', overflowWrap: 'break-word' }}>
                 {subtitle}
               </span>
             )}

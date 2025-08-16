@@ -448,10 +448,10 @@ export default function Goals() {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'High': return 'text-red-600 dark:text-red-400'
-      case 'Medium': return 'text-yellow-600 dark:text-yellow-400'
-      case 'Low': return 'text-green-600 dark:text-green-400'
-      default: return 'text-gray-600 dark:text-gray-400'
+      case 'High': return 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30'
+      case 'Medium': return 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30'
+      case 'Low': return 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30'
+      default: return 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800'
     }
   }
 
@@ -1173,45 +1173,63 @@ export default function Goals() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">{t('deadline')}</label>
-                <Input
-                  type="date"
-                  value={form.deadline}
-                  onChange={e => setForm({ ...form, deadline: e.target.value })}
-                />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">{t('deadline')}</label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="date"
+                      value={form.deadline}
+                      onChange={e => setForm({ ...form, deadline: e.target.value })}
+                      className="flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = new Date().toISOString().split('T')[0]
+                        setForm({ ...form, deadline: today })
+                      }}
+                      className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors"
+                      title="Set to today"
+                    >
+                      <Calendar size={16} />
+                    </button>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">{t('unit')}</label>
+                  <Input
+                    value={form.unit}
+                    onChange={e => setForm({ ...form, unit: e.target.value })}
+                    placeholder={t('unitPlaceholder')}
+                  />
+                </div>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium mb-2">{t('unit')}</label>
-                              <Input
-                value={form.unit}
-                onChange={e => setForm({ ...form, unit: e.target.value })}
-                placeholder={t('unitPlaceholder')}
-              />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-2">{t('target')}</label>
-                <Input
-                  type="number"
-                  value={form.target}
-                  onChange={e => setForm({ ...form, target: Number(e.target.value) })}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-2">{t('priority')}</label>
-                <select
-                  value={form.priority}
-                  onChange={e => setForm({ ...form, priority: e.target.value })}
-                  className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
-                >
-                  <option value="Low">{t('low')}</option>
-                  <option value="Medium">{t('medium')}</option>
-                  <option value="High">{t('high')}</option>
-                </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">{t('target')}</label>
+                  <Input
+                    type="number"
+                    value={form.target}
+                    onChange={e => setForm({ ...form, target: Number(e.target.value) })}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">{t('priority')}</label>
+                  <select
+                    value={form.priority}
+                    onChange={e => setForm({ ...form, priority: e.target.value })}
+                    className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-zinc-800"
+                  >
+                    <option value="Low">{t('low')}</option>
+                    <option value="Medium">{t('medium')}</option>
+                    <option value="High">{t('high')}</option>
+                  </select>
+                </div>
               </div>
             </div>
 

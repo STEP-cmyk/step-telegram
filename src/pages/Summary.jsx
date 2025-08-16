@@ -203,7 +203,7 @@ export default function Summary() {
         </div>
       </div>
       {/* Bottom spacer for Telegram WebApp mobile scrolling */}
-      <div className="h-20" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 60px)' }}></div>
+      <div className="h-32 pb-16 sm:pb-8" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)' }}></div>
     </div>
   )
 }

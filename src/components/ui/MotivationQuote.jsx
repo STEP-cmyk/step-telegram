@@ -92,9 +92,9 @@ export default function MotivationQuote() {
             <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400">
               <Quote size={20} />
             </div>
-                                    <h2 className="text-base font-semibold text-black dark:text-blue-50 whitespace-nowrap truncate max-w-[200px] sm:max-w-none">
-                          {t('motivationOfTheDay')}
-                        </h2>
+            <h2 className="text-base font-semibold text-black dark:text-blue-50 whitespace-nowrap overflow-hidden text-ellipsis flex-shrink min-w-0">
+              {t('motivationOfTheDay')}
+            </h2>
           </div>
           <button
             onClick={handleRefresh}
@@ -115,10 +115,7 @@ export default function MotivationQuote() {
         </blockquote>
         
         {/* Footer */}
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-medium text-gray-600 dark:text-blue-100/75">
-            {t('tapToChange')}
-          </p>
+        <div className="flex items-center justify-end">
           {isOffline && (
             <p className="text-xs font-medium text-orange-600 dark:text-orange-400">
               {t('offline')}

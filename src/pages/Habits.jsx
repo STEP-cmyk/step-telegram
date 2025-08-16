@@ -650,7 +650,7 @@ export default function Habits() {
                 >
                   {HABIT_CATEGORIES(t).map(cat => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
+                      {cat.name}
                     </option>
                   ))}
                 </select>
@@ -823,7 +823,7 @@ export default function Habits() {
                 >
                   {HABIT_CATEGORIES(t).map(cat => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
+                      {cat.name}
                     </option>
                   ))}
                 </select>

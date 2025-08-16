@@ -38,8 +38,8 @@ export default function Wishes() {
   const [toast, setToast] = useState(null)
   const [form, setForm] = useState({
     title: '',
-    targetAmount: 0,
-    savedAmount: 0,
+    targetAmount: '',
+    savedAmount: '',
     deadline: '',
     link: '',
     icon: 'Heart',
@@ -103,8 +103,8 @@ export default function Wishes() {
     }))
     setForm({
       title: '',
-      targetAmount: 0,
-      savedAmount: 0,
+      targetAmount: '',
+      savedAmount: '',
       deadline: '',
       link: '',
       icon: 'Heart',
@@ -117,10 +117,54 @@ export default function Wishes() {
   }
 
   const updateWish = (id, patch) => {
-    setData(d => ({ 
-      ...d, 
-      wishes: (d.wishes || []).map(w => w.id === id ? { ...w, ...patch } : w) 
-    }))
+    setData(d => {
+      const updatedWishes = (d.wishes || []).map(w => {
+        if (w.id === id) {
+          const updatedWish = { ...w, ...patch }
+          
+          // Check if wish is now complete (saved >= target)
+          if (updatedWish.savedAmount >= updatedWish.targetAmount && updatedWish.targetAmount > 0) {
+            // Automatically complete the wish
+            const completedWish = {
+              ...updatedWish,
+              completed: true,
+              completedAt: new Date().toISOString()
+            }
+            
+            // Show confetti animation
+            const confetti = mountConfetti()
+            confetti.fire()
+            setTimeout(() => confetti.destroy(), 2000)
+            
+            // Show completion toast
+            setToast({
+              type: 'success',
+              message: `${t('goalCompleted')}: ${updatedWish.title}`,
+              wish: completedWish
+            })
+            
+            // Auto-hide toast after 5 seconds
+            setTimeout(() => setToast(null), 5000)
+            
+            // Move to completed items
+            setTimeout(() => {
+              setData(prevData => ({
+                ...prevData,
+                wishes: prevData.wishes.filter(w => w.id !== id),
+                completedItems: [...(prevData.completedItems || []), completedWish]
+              }))
+            }, 100)
+            
+            return updatedWish // Return updated wish for immediate UI update
+          }
+          
+          return updatedWish
+        }
+        return w
+      })
+      
+      return { ...d, wishes: updatedWishes }
+    })
   }
 
   const completeWish = (id) => {
@@ -479,8 +523,8 @@ export default function Wishes() {
               <Input
                 type="number"
                 value={form.targetAmount}
-                onChange={e => setForm({ ...form, targetAmount: Number(e.target.value) })}
-                placeholder={t('targetAmountPlaceholder')}
+                onChange={e => setForm({ ...form, targetAmount: e.target.value === '' ? '' : Number(e.target.value) })}
+                placeholder={t('targetAmount')}
               />
             </div>
             
@@ -489,12 +533,12 @@ export default function Wishes() {
               <Input
                 type="number"
                 value={form.savedAmount}
-                onChange={e => setForm({ ...form, savedAmount: Number(e.target.value) })}
-                placeholder={t('savedAmountPlaceholder')}
+                onChange={e => setForm({ ...form, savedAmount: e.target.value === '' ? '' : Number(e.target.value) })}
+                placeholder={t('alreadySaved')}
               />
             </div>
             
-            <div>
+            <div className="grid-span-full">
               <label className="block text-sm font-medium mb-2">{t('deadline')}</label>
               <Input
                 type="date"

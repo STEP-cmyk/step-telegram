@@ -117,8 +117,8 @@ body{
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-wrap: break-word;
-  hyphens: none;
-  word-break: normal;
+  hyphens: none !important;
+  word-break: normal !important;
   overflow-wrap: break-word;
 }
 
@@ -129,8 +129,19 @@ body{
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-wrap: break-word;
-  hyphens: none;
-  word-break: normal;
+  hyphens: none !important;
+  word-break: normal !important;
+  overflow-wrap: break-word;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-wrap: break-word;
+  hyphens: none !important;
+  word-break: normal !important;
   overflow-wrap: break-word;
 }
 
@@ -190,10 +201,10 @@ body{
   text-overflow: ellipsis;
 }
 
-/* Button text wrapping */
+/* Button text wrapping - prevent wrapping for Settings button */
 .btn {
-  word-break: break-word;
-  hyphens: auto;
+  word-break: normal;
+  hyphens: none;
 }
 
 /* Form label wrapping */
@@ -370,11 +381,12 @@ html.theme-fading .app-shell{ transition: background .45s ease, color .3s ease, 
 [data-theme="dark"] .app-container,
 .dark .app-container {
   background: 
-    radial-gradient(circle at 0% 100%, rgba(251, 146, 60, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-    linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%) !important;
+    radial-gradient(circle at 0% 100%, rgba(251, 146, 60, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 60%),
+    linear-gradient(135deg, #0f172a 0%, #1e293b 30%, #334155 70%, #475569 100%) !important;
   background-attachment: fixed;
-  background-size: 100% 200vh;
+  background-size: 100% 400vh;
+  background-repeat: no-repeat;
 }
 
 
@@ -393,7 +405,7 @@ html.theme-fading .app-shell{ transition: background .45s ease, color .3s ease, 
 
 /* Components */
 .card{
-  @apply bg-white/80 dark:bg-zinc-800/80 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-sm backdrop-blur-sm;
+  @apply bg-white/85 dark:bg-zinc-800/85 border border-gray-200/60 dark:border-gray-700/60 rounded-xl p-3 shadow-lg backdrop-blur-md;
   transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center;
@@ -478,7 +490,6 @@ html.theme-fading .app-shell{ transition: background .45s ease, color .3s ease, 
 .badge{
   @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full transition-all duration-300;
   @apply bg-blue-600 text-white border border-blue-600;
-  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .badge:hover {
